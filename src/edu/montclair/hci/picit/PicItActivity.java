@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.os.Bundle;
 import android.widget.TabHost;
 
+//Comment
 public class PicItActivity extends TabActivity {
     /** Called when the activity is first created. */
     @Override
