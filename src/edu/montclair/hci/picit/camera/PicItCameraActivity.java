@@ -27,6 +27,8 @@ import android.widget.TextView;
 
 public class PicItCameraActivity extends Activity implements SurfaceHolder.Callback, Camera.AutoFocusCallback, OnClickListener {
 	
+	private final String TAG = "PicItCameraActivity";
+	
 	private Camera camera = null;
 	private TextView fileLocationWidget = null;
 	
@@ -80,7 +82,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     		camera.stopPreview();
     		camera.release();
     		camera = null;
-    		Log.d("PicItCameraActivity", "Camera Released");
+    		Log.d(TAG, "Camera Released");
     	}
     }
     
@@ -94,7 +96,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
         try {
 			camera.setPreviewDisplay(surfaceHolder);
 		} catch ( IOException e ) {
-			Log.e("CameraPreviewDemo2Activity", "IOException: setPreviewDisplay()", e);
+			Log.e(TAG, "IOException: setPreviewDisplay()", e);
 		}
         
         startPreview(surfaceView.getWidth(), surfaceView.getHeight());
@@ -110,7 +112,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     	try {
 			camera.setPreviewDisplay(surfaceHolder);
 		} catch ( IOException e ) {
-			Log.e("CameraPreviewDemo2Activity", "IOException: setPreviewDisplay()", e);
+			Log.e(TAG, "IOException: setPreviewDisplay()", e);
 		}
 		
 		Size optimalSize = getOptimalSize(width, height);
@@ -141,7 +143,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
         
     	// Try to find an size match aspect ratio and size
         for (Size size : sizes) {
-        	Log.d("EdgeDetection", "Width: " + size.width + " Height: " + size.height);
+        	Log.d(TAG, "Width: " + size.width + " Height: " + size.height);
             double ratio = (double) size.width / size.height;
             if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
             if (Math.abs(size.width - targetWidth) < minDiff) {
@@ -160,7 +162,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
             }
         }
 
-    	Log.d("EdgeDetection", "Optimal Width: " + optimalSize.width + " Optimal Height: " + optimalSize.height);
+    	Log.d(TAG, "Optimal Width: " + optimalSize.width + " Optimal Height: " + optimalSize.height);
     	return optimalSize;    	
     }
     
@@ -209,7 +211,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 					
 					
 				} catch ( Exception e ) {
-					Log.e("CameraPreviewDemo2Activity.photoCallback", "IOException: FileOutputStream()", e);
+					Log.e(TAG+".photoCallback", "IOException: FileOutputStream()", e);
 				}
 				
 			}
