@@ -99,7 +99,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 			Log.e(TAG, "IOException: setPreviewDisplay()", e);
 		}
         
-        startPreview(surfaceView.getWidth(), surfaceView.getHeight());
+        surfaceView.requestLayout();
     }
     
     public void startPreview() {
@@ -109,22 +109,22 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     }
     
     public void startPreview(int width, int height) {
-    	try {
-			camera.setPreviewDisplay(surfaceHolder);
-		} catch ( IOException e ) {
-			Log.e(TAG, "IOException: setPreviewDisplay()", e);
-		}
-		
-		Size optimalSize = getOptimalSize(width, height);
-		Camera.Parameters params = camera.getParameters();
-		params.setPreviewSize(optimalSize.width, optimalSize.height);
-		
-		camera.setParameters(params);
-		
-		surfaceView.layout(0, 0, optimalSize.width, optimalSize.height);
-		overlayView.setPreviewSize(optimalSize);
-		
     	if ( camera != null ) {
+	    	try {
+				camera.setPreviewDisplay(surfaceHolder);
+			} catch ( IOException e ) {
+				Log.e(TAG, "IOException: setPreviewDisplay()", e);
+			}
+			
+			Size optimalSize = getOptimalSize(width, height);
+			Camera.Parameters params = camera.getParameters();
+			params.setPreviewSize(optimalSize.width, optimalSize.height);
+			
+			camera.setParameters(params);
+			
+			surfaceView.layout(0, 0, optimalSize.width, optimalSize.height);
+			overlayView.setPreviewSize(optimalSize);
+			
         	camera.startPreview();
     	}
     }
