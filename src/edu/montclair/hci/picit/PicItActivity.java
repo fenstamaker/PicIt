@@ -24,14 +24,16 @@ public class PicItActivity extends TabActivity {
 
         intent = new Intent().setClass(this, PicItMapActivity.class);
         
-        spec = tabHost.newTabSpec("map").setIndicator("Map", res.getDrawable(R.drawable.ic_tab_map)).setContent(intent);
+        spec = tabHost.newTabSpec("map").setIndicator("", res.getDrawable(R.drawable.ic_tab_map)).setContent(intent);
         tabHost.addTab(spec);
 
         intent = new Intent().setClass(this, PicItCameraActivity.class);
         
-        spec = tabHost.newTabSpec("camera").setIndicator("Camera", res.getDrawable(R.drawable.ic_tab_camera)).setContent(intent);
+        spec = tabHost.newTabSpec("camera").setIndicator("", res.getDrawable(R.drawable.ic_tab_camera)).setContent(intent);
         tabHost.addTab(spec);
         
         tabHost.setCurrentTab(2);
+        tabHost.getTabWidget().getChildAt(0).getLayoutParams().height = 85;
+        tabHost.getTabWidget().getChildAt(1).getLayoutParams().height = 85;
     }
 }

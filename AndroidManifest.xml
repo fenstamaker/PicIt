@@ -23,15 +23,16 @@
    		<uses-library android:name="com.google.android.maps" />
         <activity
             android:name=".PicItActivity"
-            android:label="@string/app_name" >
+            android:label="@string/app_name"
+            android:screenOrientation="landscape" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="edu.montclair.hci.picit.map.PicItMapActivity" />
-        <activity android:name="edu.montclair.hci.picit.camera.PicItCameraActivity" />
+        <activity android:name="edu.montclair.hci.picit.map.PicItMapActivity" android:screenOrientation="landscape"/>
+        <activity android:name="edu.montclair.hci.picit.camera.PicItCameraActivity" android:screenOrientation="landscape"/>
     </application>
 
 </manifest>

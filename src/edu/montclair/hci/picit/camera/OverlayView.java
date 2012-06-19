@@ -94,6 +94,7 @@ public class OverlayView extends SurfaceView {
 			drawTime = (System.currentTimeMillis() - timeDraw1);
 			
 			pt.setTextSize(16);
+			
 			pt.setColor(Color.WHITE);
 			
 			Camera.Parameters params = camera.getParameters();
@@ -102,13 +103,13 @@ public class OverlayView extends SurfaceView {
 			Camera.Size resolution = params.getPreviewSize();
 			
 			overlayCanvas.drawText("Sobel Time: " + Long.toString(sobelTime) + "ms", 
-					overlayCanvas.getWidth()-150, overlayCanvas.getHeight()-150, pt);
+					overlayCanvas.getWidth()-200, overlayCanvas.getHeight()-100, pt);
 			overlayCanvas.drawText("Draw Time : " + Long.toString(drawTime) + "ms", 
-					overlayCanvas.getWidth()-150, overlayCanvas.getHeight()-130, pt);
+					overlayCanvas.getWidth()-200, overlayCanvas.getHeight()-80, pt);
 			overlayCanvas.drawText("Camera FPS: " + Integer.toString(fpsRange[params.PREVIEW_FPS_MIN_INDEX]/1000) + "-" + Integer.toString(fpsRange[params.PREVIEW_FPS_MAX_INDEX]/1000),
-					overlayCanvas.getWidth()-150, overlayCanvas.getHeight()-110, pt);
+					overlayCanvas.getWidth()-200, overlayCanvas.getHeight()-60, pt);
 			overlayCanvas.drawText("Resolution: " + Integer.toString(resolution.height) + "x" + Integer.toString(resolution.width), 
-					overlayCanvas.getWidth()-150, overlayCanvas.getHeight()-90, pt);
+					overlayCanvas.getWidth()-200, overlayCanvas.getHeight()-40, pt);
 			
 			overlayHolder.unlockCanvasAndPost(overlayCanvas);
 			
