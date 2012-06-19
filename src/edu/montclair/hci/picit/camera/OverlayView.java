@@ -111,7 +111,7 @@ public class OverlayView extends SurfaceView {
 					overlayCanvas.getWidth()-200, overlayCanvas.getHeight()-80, pt);
 			overlayCanvas.drawText("Camera FPS: " + Integer.toString(fpsRange[params.PREVIEW_FPS_MIN_INDEX]/1000) + "-" + Integer.toString(fpsRange[params.PREVIEW_FPS_MAX_INDEX]/1000),
 					overlayCanvas.getWidth()-200, overlayCanvas.getHeight()-60, pt);
-			overlayCanvas.drawText("Resolution: " + Integer.toString(resolution.height) + "x" + Integer.toString(resolution.width), 
+			overlayCanvas.drawText("Resolution: " + Integer.toString(resolution.width) + "x" + Integer.toString(resolution.height), 
 					overlayCanvas.getWidth()-200, overlayCanvas.getHeight()-40, pt);
 			
 			overlayHolder.unlockCanvasAndPost(overlayCanvas);

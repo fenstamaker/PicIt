@@ -33,7 +33,5 @@ public class PicItActivity extends TabActivity {
         tabHost.addTab(spec);
         
         tabHost.setCurrentTab(2);
-        tabHost.getTabWidget().getChildAt(0).getLayoutParams().height = 85;
-        tabHost.getTabWidget().getChildAt(1).getLayoutParams().height = 85;
     }
 }
