@@ -94,6 +94,9 @@ public class OverlayView extends SurfaceView {
 			drawTime = (System.currentTimeMillis() - timeDraw1);
 			
 			pt.setTextSize(16);
+			pt.setColor(Color.BLACK);
+			
+			overlayCanvas.drawRect(overlayCanvas.getWidth()-215, overlayCanvas.getHeight()-125, overlayCanvas.getWidth(), overlayCanvas.getHeight(), pt);
 			
 			pt.setColor(Color.WHITE);
 			
