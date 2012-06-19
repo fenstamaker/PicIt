@@ -67,7 +67,6 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
         		defaultCameraId = i;
         	}
         }
-       
         
     }
     
