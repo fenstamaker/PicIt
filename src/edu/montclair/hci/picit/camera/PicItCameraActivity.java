@@ -81,7 +81,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     		camera.stopPreview();
     		camera.release();
     		camera = null;
-    		Log.d("This", "Camera Released");
+    		Log.d("PicItCameraActivity", "Camera Released");
     	}
     }
     
@@ -89,6 +89,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     public void onResume() {
     	super.onResume();
 
+		Log.d("PicItCameraActivity", "onResume");
     	camera = Camera.open(defaultCameraId);
         overlayView.setCamera(camera);
         try {
@@ -96,9 +97,32 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 		} catch ( IOException e ) {
 			Log.e("CameraPreviewDemo2Activity", "IOException: setPreviewDisplay()", e);
 		}
+        
+        startPreview(surfaceView.getWidth(), surfaceView.getHeight());
     }
     
     public void startPreview() {
+    	if ( camera != null ) {
+        	camera.startPreview();
+    	}
+    }
+    
+    public void startPreview(int width, int height) {
+    	try {
+			camera.setPreviewDisplay(surfaceHolder);
+		} catch ( IOException e ) {
+			Log.e("CameraPreviewDemo2Activity", "IOException: setPreviewDisplay()", e);
+		}
+		
+		Size optimalSize = getOptimalSize(width, height);
+		Camera.Parameters params = camera.getParameters();
+		params.setPreviewSize(optimalSize.width, optimalSize.height);
+		
+		camera.setParameters(params);
+		
+		surfaceView.layout(0, 0, optimalSize.width, optimalSize.height);
+		overlayView.setPreviewSize(optimalSize);
+		
     	if ( camera != null ) {
         	camera.startPreview();
     	}
@@ -140,24 +164,10 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     	Log.d("EdgeDetection", "Optimal Width: " + optimalSize.width + " Optimal Height: " + optimalSize.height);
     	return optimalSize;    	
     }
+    
 
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-		try {
-			camera.setPreviewDisplay(surfaceHolder);
-		} catch ( IOException e ) {
-			Log.e("CameraPreviewDemo2Activity", "IOException: setPreviewDisplay()", e);
-		}
-		
-		Size optimalSize = getOptimalSize(width, height);
-		Camera.Parameters params = camera.getParameters();
-		params.setPreviewSize(optimalSize.width, optimalSize.height);
-		
-		camera.setParameters(params);
-		
-		surfaceView.layout(0, 0, optimalSize.width, optimalSize.height);
-		overlayView.setPreviewSize(optimalSize);
-		
-		startPreview();
+		startPreview(width, height);
 	}
 
 	public void surfaceCreated(SurfaceHolder arg0) {
