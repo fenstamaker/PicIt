@@ -58,7 +58,6 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
         
         fileLocationWidget = (TextView)findViewById(R.id.textView1);
         
-    	
     	numberOfCameras = Camera.getNumberOfCameras();
         
         // Grabs the back facing camera
@@ -87,6 +86,14 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     }
     
     @Override
+    public void onStop() {
+    	super.onStop();
+    	
+    	Log.d(TAG, "Finished");
+    	finish();
+    }
+    
+    @Override
     public void onResume() {
     	super.onResume();
 
@@ -94,8 +101,9 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     	camera = Camera.open(defaultCameraId);
         overlayView.setCamera(camera);
         
+        overlayView.init();
         surfaceView.requestLayout();
-        overlayView.requestLayout();
+        overlayView.invalidate();
     }
     
     public void startPreview() {

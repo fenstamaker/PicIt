@@ -12,26 +12,40 @@ import android.widget.TabHost;
 //Comment
 public class PicItActivity extends TabActivity {
     /** Called when the activity is first created. */
+	private Intent mapIntent;
+	private Intent cameraIntent;
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        
-        Resources res = getResources();
+
+    	Resources res = getResources();
         TabHost tabHost = getTabHost();
         TabHost.TabSpec spec;
-        Intent intent;
 
-        intent = new Intent().setClass(this, PicItMapActivity.class);
+        mapIntent = new Intent().setClass(this, PicItMapActivity.class);
         
-        spec = tabHost.newTabSpec("map").setIndicator("", res.getDrawable(R.drawable.ic_tab_map)).setContent(intent);
+        spec = tabHost.newTabSpec("map").setIndicator("", res.getDrawable(R.drawable.ic_tab_map)).setContent(mapIntent);
         tabHost.addTab(spec);
 
-        intent = new Intent().setClass(this, PicItCameraActivity.class);
+        cameraIntent = new Intent().setClass(this, PicItCameraActivity.class);
         
-        spec = tabHost.newTabSpec("camera").setIndicator("", res.getDrawable(R.drawable.ic_tab_camera)).setContent(intent);
+        spec = tabHost.newTabSpec("camera").setIndicator("", res.getDrawable(R.drawable.ic_tab_camera)).setContent(cameraIntent);
         tabHost.addTab(spec);
         
         tabHost.setCurrentTab(2);
+    }
+    
+    @Override
+    public void onPause() {
+    	super.onPause();
+    	
+    }
+    
+    @Override
+    public void onResume() {
+    	super.onResume();
+    	
     }
 }

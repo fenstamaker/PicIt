@@ -16,14 +16,13 @@ import android.widget.TextView;
 
 public class OverlayView extends SurfaceView {
 	
+	private final String TAG = "OverlayView";
+	
 	private SurfaceHolder overlayHolder;
 	private Camera camera;
 	private Camera.Size frameSize;
-	private int[] frameSobel;
-	private byte[] convolutedFrame;
 	private long sobelTime;
 	private long drawTime;
-	private TextView textView;
 	
 	private NativeLib nativeLib;
 	
@@ -31,6 +30,7 @@ public class OverlayView extends SurfaceView {
 
 	public void init() {
 		overlayHolder = getHolder();
+		nativeLib = new NativeLib();
 	}
 	
 	public OverlayView(Context context) {
@@ -59,15 +59,15 @@ public class OverlayView extends SurfaceView {
 	}
 	
 	public void removePreview() {
+		overlayHolder = null;
+		nativeLib = null;
+		nativeFrameSobel = null;
 		camera.setPreviewCallback(null);
 	}
 	
 	Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
 		
 		public void onPreviewFrame(byte[] frame, Camera camera) {
-			if ( nativeLib == null ) {
-				nativeLib = new NativeLib();
-			}
 			
 			Canvas overlayCanvas = overlayHolder.lockCanvas(null);
 
