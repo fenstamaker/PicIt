@@ -2,6 +2,7 @@ package edu.montclair.hci.picit.camera;
 
 import edu.montclair.hci.picit.R;
 import edu.montclair.hci.picit.camera.OverlayView;
+import edu.montclair.hci.picit.location.*;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -11,12 +12,15 @@ import java.util.Date;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Size;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Base64;
 import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -30,6 +34,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 	private final String TAG = "PicItCameraActivity";
 	
 	private Camera camera = null;
+	
 	private TextView fileLocationWidget = null;
 	
 	private SurfaceView surfaceView = null;
@@ -38,6 +43,10 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 	
 	private int numberOfCameras;
 	private int defaultCameraId;
+	
+	public static int YOFFSET;
+	
+	private ProgressDialog progressDialog;
 	
     /** Called when the activity is first created. */
     @Override
@@ -149,7 +158,43 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     	return optimalSize;    	
     }
     
+    private Size getOptimalPictureSize(int width, int height) {
+    	
+    	Camera.Parameters params = camera.getParameters();
+    	List<Size> sizes = params.getSupportedPictureSizes();
+    	
+    	int targetHeight = height;
+    	int targetWidth = width;
+    	final double ASPECT_TOLERANCE = 0.1;
+        double targetRatio = (double) width / height;
+    	Size optimalSize = null;
+        double minDiff = Double.MAX_VALUE;
+        
+    	// Try to find an size match aspect ratio and size
+        for (Size size : sizes) {
+        	Log.d(TAG, "Width: " + size.width + " Height: " + size.height);
+            double ratio = (double) size.width / size.height;
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+            if (Math.abs(size.width - targetWidth) < minDiff) {
+                optimalSize = size;
+                minDiff = Math.abs(size.width - targetWidth);
+            }
+        }
+    	
+        if (optimalSize == null) {
+            minDiff = Double.MAX_VALUE;
+            for (Size size : sizes) {
+                if (Math.abs(size.width - targetWidth) < minDiff) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.width - targetWidth);
+                }
+            }
+        }
 
+    	Log.d(TAG, "Optimal Width: " + optimalSize.width + " Optimal Height: " + optimalSize.height);
+    	return optimalSize;    	
+    }
+    
 	public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
 		try {
 			camera.setPreviewDisplay(surfaceHolder);
@@ -165,8 +210,12 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 			optimalSize = getOptimalSize(width, height);
 		}
 		
+		Size pictureSize = getOptimalPictureSize(800, 480);
+		
 		Camera.Parameters params = camera.getParameters();
 		params.setPreviewSize(optimalSize.width, optimalSize.height);
+		params.setPictureSize(pictureSize.width, pictureSize.height);
+		params.setPictureFormat(ImageFormat.JPEG);
 		
 		camera.setParameters(params);
 		
@@ -191,33 +240,35 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 	}
 
 	public void onAutoFocus(boolean arg0, Camera arg1) {
-		//camera.takePicture(null, null, photoCallback);		
+		camera.takePicture(null, null, photoCallback);		
+		progressDialog = ProgressDialog.show(this, "Uploading", "");
 	}
 	
 
 	Camera.PictureCallback photoCallback = new Camera.PictureCallback() {
 		
-		public void onPictureTaken(byte[] data, Camera camera) {
+		public void onPictureTaken(final byte[] data, Camera camera) {
 			if ( data != null ) {
-				try {
-					File photoFileDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "CameraPreviewDemo2");
-					
-					if ( !photoFileDir.exists() ) {
-						photoFileDir.mkdirs();
+				
+				
+				new Thread(new Runnable() {
+
+					public void run() {
+						try {
+							
+							HttpRequest upload = new HttpRequest("http://hci.montclair.edu/android/add_image.php");
+							upload.addValuePair("submit", "Submit");
+							upload.addValuePair("image", Base64.encodeToString(data, Base64.DEFAULT) );
+							upload.execute();
+							
+						} catch ( Exception e ) {
+							Log.e(TAG+".photoCallback", "Upload Error: ", e);
+						}
+						
+						progressDialog.dismiss();
 					}
-					
-					String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-					
-					File photoFile = new File(photoFileDir.getAbsolutePath() + File.separator + "IMG_" + timestamp + ".jpg");
-					fileLocationWidget.setText(photoFile.toString());
-					FileOutputStream fout = new FileOutputStream(photoFile);
-					fout.write(data);
-					fout.close();
-					
-					
-				} catch ( Exception e ) {
-					Log.e(TAG+".photoCallback", "IOException: FileOutputStream()", e);
-				}
+				}).start();
+				
 				
 			}
 			

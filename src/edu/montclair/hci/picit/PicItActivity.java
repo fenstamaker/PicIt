@@ -7,6 +7,7 @@ import android.app.TabActivity;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TabHost;
 
 //Comment
@@ -14,6 +15,7 @@ public class PicItActivity extends TabActivity {
     /** Called when the activity is first created. */
 	private Intent mapIntent;
 	private Intent cameraIntent;
+	private TabHost tabHost;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -21,7 +23,8 @@ public class PicItActivity extends TabActivity {
         setContentView(R.layout.main);
 
     	Resources res = getResources();
-        TabHost tabHost = getTabHost();
+        //TabHost tabHost = getTabHost();
+    	tabHost = getTabHost();
         TabHost.TabSpec spec;
 
         mapIntent = new Intent().setClass(this, PicItMapActivity.class);
@@ -30,11 +33,14 @@ public class PicItActivity extends TabActivity {
         tabHost.addTab(spec);
 
         cameraIntent = new Intent().setClass(this, PicItCameraActivity.class);
+        //PicItCameraActivity.YOFFSET = tabHost.getTabWidget().getChildAt(0).getLayoutParams().height;
         
         spec = tabHost.newTabSpec("camera").setIndicator("", res.getDrawable(R.drawable.ic_tab_camera)).setContent(cameraIntent);
         tabHost.addTab(spec);
         
-        tabHost.setCurrentTab(2);
+        tabHost.setCurrentTab(2); 
+        //Log.d("height ", "" +tabHost.getTabWidget().getChildAt(0).getLayoutParams().height);
+       
     }
     
     @Override
@@ -46,6 +52,6 @@ public class PicItActivity extends TabActivity {
     @Override
     public void onResume() {
     	super.onResume();
-    	
+        //Log.d("top ", "" +tabHost.getTop());    	
     }
 }
