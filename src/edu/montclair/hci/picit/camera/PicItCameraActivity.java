@@ -95,6 +95,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
         overlayView.setCamera(camera);
         
         surfaceView.requestLayout();
+        overlayView.requestLayout();
     }
     
     public void startPreview() {
