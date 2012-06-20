@@ -148,7 +148,14 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 			Log.e(TAG, "IOException: setPreviewDisplay()", e);
 		}
 		
-		Size optimalSize = getOptimalSize(width, height);
+		Size optimalSize = null;
+		
+		if (height > 480) {
+			optimalSize = getOptimalSize(800, 480);
+		} else {
+			optimalSize = getOptimalSize(width, height);
+		}
+		
 		Camera.Parameters params = camera.getParameters();
 		params.setPreviewSize(optimalSize.width, optimalSize.height);
 		
