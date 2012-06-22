@@ -36,7 +36,9 @@ public class HttpRequest {
 	}
 	
 	public void execute() throws ClientProtocolException, IOException {
-		post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+		if (!nameValuePairs.isEmpty()) {
+			post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+		}
         response = client.execute(post);
 	}
 	

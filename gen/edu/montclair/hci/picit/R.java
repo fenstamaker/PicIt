@@ -19,6 +19,7 @@ public final class R {
         public static final int ic_tab_map_selected=0x7f020005;
         public static final int ic_tab_map_unselected=0x7f020006;
         public static final int location=0x7f020007;
+        public static final int point=0x7f020008;
     }
     public static final class id {
         public static final int button1=0x7f050004;

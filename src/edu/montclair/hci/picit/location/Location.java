@@ -6,9 +6,15 @@ public class Location {
 	
 	public String title;
 	public String description;
-	public long latitude;
-	public long longitude;
-	public Bitmap image;
+	public int latitude;
+	public int longitude;
+	
+	public Location(String t, String d, int lat, int lon) {
+		title = t;
+		description = d;
+		latitude = lat;
+		longitude = lon;
+	}
 
 }
  

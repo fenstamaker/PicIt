@@ -1,5 +1,6 @@
 package edu.montclair.hci.picit;
 
+import edu.montclair.hci.picit.location.PicItLocationManager;
 import edu.montclair.hci.picit.map.*;
 import edu.montclair.hci.picit.camera.*;
 
@@ -16,10 +17,15 @@ public class PicItActivity extends TabActivity {
 	private Intent mapIntent;
 	private Intent cameraIntent;
 	private TabHost tabHost;
+	private PicItLocationManager locationService;
 	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        locationService = PicItLocationManager.INSTANCE;
+        locationService.init(this);
+        
         setContentView(R.layout.main);
 
     	Resources res = getResources();
@@ -47,11 +53,15 @@ public class PicItActivity extends TabActivity {
     public void onPause() {
     	super.onPause();
     	
+    	locationService.stop();
+    	
     }
     
     @Override
     public void onResume() {
     	super.onResume();
-        //Log.d("top ", "" +tabHost.getTop());    	
+        //Log.d("top ", "" +tabHost.getTop());  
+    	
+    	locationService.requestUpdate();
     }
 }

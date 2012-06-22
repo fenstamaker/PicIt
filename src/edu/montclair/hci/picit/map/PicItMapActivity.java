@@ -1,15 +1,39 @@
 package edu.montclair.hci.picit.map;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.json.JSONException;
+
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.util.Log;
 
 import com.google.android.maps.*;
 
 import edu.montclair.hci.picit.R;
+import edu.montclair.hci.picit.location.*;
 
 public class PicItMapActivity extends MapActivity {
+	
+	private final String TAG = "PicItMapActivity";
+	
+	private LocationDTO locationDTO = new LocationDTO();
+	private ArrayList<Location> locations = new ArrayList<Location>();
+	
+	private ImageDTO imageDTO = new ImageDTO();
+	private ArrayList<Image> images = new ArrayList<Image>();
+	
+	private GeoPoint current = null;
+	
+	private MapOverlay pointOverlay;
+	private MapOverlay imageOverlay;
+	private List<Overlay> mapOverlays;
+	private MyLocationOverlay myLocationOverlay;
+	
+	private MapView mapView;
+	private MapController mapController;
 	
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -17,18 +41,45 @@ public class PicItMapActivity extends MapActivity {
 		
 		setContentView(R.layout.map_layout);
 		
-		MapView mapView = (MapView) findViewById(R.id.mapView);
+		mapView = (MapView) findViewById(R.id.mapView);
 	    mapView.setBuiltInZoomControls(true);
+	    mapController = mapView.getController();
 	    
-	    List<Overlay> mapOverlays = mapView.getOverlays();
+	    mapOverlays = mapView.getOverlays();
 	    Drawable drawable = this.getResources().getDrawable(R.drawable.location);
-	    MapOverlay overlay = new MapOverlay(drawable, this);
+	    pointOverlay = new MapOverlay(drawable, this);
+	    Drawable imageDrawable = this.getResources().getDrawable(R.drawable.point);
+	    imageOverlay = new MapOverlay(imageDrawable, this);
 	    
-	    GeoPoint point = new GeoPoint(19240000,-99120000);
-	    OverlayItem overlayitem = new OverlayItem(point, "Hola, Mundo!", "I'm in Mexico City!");
+	    myLocationOverlay = new MyLocationOverlay(this, mapView);
+	    mapOverlays.add(myLocationOverlay);
+	    myLocationOverlay.runOnFirstFix(new Runnable() {
+			public void run() {
+				current = myLocationOverlay.getMyLocation();
+				mapController.animateTo(current);
+				mapController.setZoom(18);
+
+			    DownloadImages imageTask = new DownloadImages();
+			    imageTask.execute(new Void[0]);
+			}
+		});
 	    
-	    overlay.addOverlay(overlayitem);
-	    mapOverlays.add(overlay);
+	    DownloadLocations task = new DownloadLocations();
+	    task.execute(new Void[0]);
+	}
+
+	@Override
+	public void onResume() {
+		super.onResume();
+
+	    myLocationOverlay.enableMyLocation();
+	}
+
+	@Override
+	public void onPause() {
+		super.onPause();
+
+	    myLocationOverlay.disableMyLocation();
 	}
 
 	@Override
@@ -37,4 +88,57 @@ public class PicItMapActivity extends MapActivity {
 		return false;
 	}
 
+	private class DownloadLocations extends AsyncTask<Void, Void, ArrayList<Location> > {
+
+		@Override
+		protected ArrayList<Location> doInBackground(Void... params) {
+
+			try {
+				locations = locationDTO.getAllLocations();
+			} catch (JSONException e) {
+				Log.e(TAG, "Failed to parse JSON: " + e.getLocalizedMessage());
+			}
+			    			
+			return locations;
+		}
+		
+		protected void onPostExecute(ArrayList<Location> locations) {
+			for(Location location : locations) {
+			    GeoPoint point = new GeoPoint(location.latitude,location.longitude);
+			    OverlayItem overlayitem = new OverlayItem(point, location.title, location.description);
+			    pointOverlay.addOverlay(overlayitem);
+		    }
+	 	        
+		    mapOverlays.add(pointOverlay);			
+		}
+		
+	}
+	
+	private class DownloadImages extends AsyncTask<Void, Void, ArrayList<Image> > {
+
+		@Override
+		protected ArrayList<Image> doInBackground(Void... params) {
+			try {
+				images = imageDTO.getAllImages(current.getLatitudeE6(), current.getLongitudeE6());
+			} catch (JSONException e) {
+				Log.e(TAG, "Failed to parse JSON: " + e.getLocalizedMessage());
+			}
+			    			
+			return images;
+		}
+		
+		protected void onPostExecute(ArrayList<Image> images) {
+
+			if ( !images.isEmpty() ) {
+				for(Image image : images) {
+				    GeoPoint point = new GeoPoint(image.latitude,image.longitude);
+				    OverlayItem overlayitem = new OverlayItem(point, "Image", "Image");
+				    imageOverlay.addOverlay(overlayitem);
+			    }
+		 	        
+			    mapOverlays.add(imageOverlay);		
+			}
+		}
+		
+	}
 }

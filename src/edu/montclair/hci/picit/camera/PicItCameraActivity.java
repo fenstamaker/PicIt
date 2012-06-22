@@ -4,22 +4,22 @@ import edu.montclair.hci.picit.R;
 import edu.montclair.hci.picit.camera.OverlayView;
 import edu.montclair.hci.picit.location.*;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
+
+import com.google.android.maps.GeoPoint;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.graphics.ImageFormat;
 import android.graphics.PixelFormat;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.hardware.Camera.Size;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Base64;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -27,15 +27,12 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.TextView;
 
 public class PicItCameraActivity extends Activity implements SurfaceHolder.Callback, Camera.AutoFocusCallback, OnClickListener {
 	
 	private final String TAG = "PicItCameraActivity";
 	
 	private Camera camera = null;
-	
-	private TextView fileLocationWidget = null;
 	
 	private SurfaceView surfaceView = null;
 	private OverlayView overlayView = null;
@@ -44,9 +41,12 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 	private int numberOfCameras;
 	private int defaultCameraId;
 	
-	public static int YOFFSET;
-	
 	private ProgressDialog progressDialog;
+	
+	private byte[] photoData;
+	
+	private PicItLocationManager locationService = PicItLocationManager.INSTANCE;
+
 	
     /** Called when the activity is first created. */
     @Override
@@ -64,8 +64,6 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
         
         Button button = (Button)findViewById(R.id.button1);
         button.setOnClickListener(this);
-        
-        fileLocationWidget = (TextView)findViewById(R.id.textView1);
         
     	numberOfCameras = Camera.getNumberOfCameras();
         
@@ -240,38 +238,37 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 	}
 
 	public void onAutoFocus(boolean arg0, Camera arg1) {
-		camera.takePicture(null, null, photoCallback);		
 		progressDialog = ProgressDialog.show(this, "Uploading", "");
+		camera.takePicture(null, null, photoCallback);	
 	}
-	
 
-	Camera.PictureCallback photoCallback = new Camera.PictureCallback() {
+	private Camera.PictureCallback photoCallback = new Camera.PictureCallback() {
 		
-		public void onPictureTaken(final byte[] data, Camera camera) {
+		public void onPictureTaken(byte[] data, Camera camera) {
 			if ( data != null ) {
-				
-				
-				new Thread(new Runnable() {
+				photoData = data;
+				new Thread(uploadPhoto).start();
+			}
+		}
+	};
+	
+	private Runnable uploadPhoto = new Runnable() {
 
-					public void run() {
-						try {
-							
-							HttpRequest upload = new HttpRequest("http://hci.montclair.edu/android/add_image.php");
-							upload.addValuePair("submit", "Submit");
-							upload.addValuePair("image", Base64.encodeToString(data, Base64.DEFAULT) );
-							upload.execute();
-							
-						} catch ( Exception e ) {
-							Log.e(TAG+".photoCallback", "Upload Error: ", e);
-						}
-						
-						progressDialog.dismiss();
-					}
-				}).start();
+		public void run() {
+			try {
 				
+				HttpRequest upload = new HttpRequest("http://hci.montclair.edu/android/add_image.php");
+				upload.addValuePair("submit", "Submit");
+				upload.addValuePair("image", Base64.encodeToString(photoData, Base64.DEFAULT) );
+				upload.addValuePair("lat", Integer.toString(locationService.getCurrent().getLatitudeE6()) );
+				upload.addValuePair("lon", Integer.toString(locationService.getCurrent().getLongitudeE6()) );
+				upload.execute();
 				
+			} catch ( Exception e ) {
+				Log.e(TAG+".photoCallback", "Upload Error: ", e);
 			}
 			
+			progressDialog.dismiss();
 			startPreview();
 		}
 	};
