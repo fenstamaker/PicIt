@@ -4,8 +4,8 @@ extern "C" {
 	JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output);
 };
 
-void meanConvolution(jbyte* src, jint width, jint height, jbyte* dst);
-void sobel(jbyte* src, jint width, jint height, jint* dst);
+void sobel(jbyte* src, jint width, jint height, jbyte* dst);
+void connectedComponent(jbyte* src, jint width, jint height, jint* dst);
 
 JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output) {
 
@@ -13,54 +13,76 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 	jbyte *src = env->GetByteArrayElements(frame, &copy);
 	jint *dst = (jint*) env->GetDirectBufferAddress(output);
 
-	//jbyte mDst[width*height];
-	//meanConvolution(src, width, height, mDst);
-	sobel(src, width, height, dst);
+	jbyte tempDst[width*height];
+	sobel(src, width, height, tempDst);
+	connectedComponent(tempDst, width, height, dst);
 
 	env->ReleaseByteArrayElements(frame, src, JNI_ABORT);
 }
 
-void meanConvolution(jbyte* src, jint width, jint height, jbyte* dst) {
+void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	int w = width;
+	int h = height;
+
+	int equals[256];
+
 	int Y = 0;
 	int pos = 0;
-	int nW = 0;
-	int pW = 0;
+	int north = 0;
+	int northWest = 0;
+	int northEast = 0;
+	int west = 0;
+	int east = 0;
 
-	int sum = 0;
-	int value = 0;
+	int regionCounter = 1;
 
-	for ( int y = 1; y < height - 1; y++ ) {
+	for ( int y = 1; y < h - 1; y++ ) {
 
 		Y = y * w + 1;
 
-		for ( int x = 1; x < width - 1; x++ ) {
+		for ( int x = 1; x < w - 1; x++ ) {
 
 			pos = (Y+x);
-			pW = pos+w;
-			nW = pos-w;
 
-			sum  = 0;
-			sum += src[nW-1] + src[nW] + src[nW+1] + src[pos-1] + src[pos] + src[pos+1] + src[pW-1] + src[pW] + src[pW+1];
+			if ( src[pos] > 0 ) {
+				north = pos-w;
+				northWest = north-1;
+				northEast = north+1;
+				west = pos-1;
+				east = pos+1;
 
-			value = sum / 9;
+				if ( src[north] == 0 && src[northWest] == 0 && src[northEast] == 0 && src[west] == 0 ) {
+					dst[pos] = regionCounter;
+					regionCounter++;
+				} else {
+					int values[4] = { dst[north], dst[northWest], dst[northEast], dst[west] };
+					int min = dst[north];
 
-			dst[nW-1]  = value;
-			dst[nW]    = value;
-			dst[nW+1]  = value;
-			dst[pos-1] = value;
-			dst[pos]   = value;
-			dst[pos+1] = value;
-			dst[pW-1]  = value;
-			dst[pW]    = value;
-			dst[pW+1]  = value;
+					// Finds minimum value
+					for ( int i = 1; i < 4; i++ ) {
+						if ( values[i] < min )
+							min = values[i];
+					}
 
-		} // End of Inner For Loop
+					// Sets current pixel to minimum
+					dst[pos] = min;
+				}
+			}
+		}
+	}
 
-	} // End of Outer For loop
+	for ( int i = 0; i < w*h; i++ ) {
+		if ( dst[i] != 0) {
+			int paintValue =  	(dst[i]*2 <<  0) +
+								(dst[i]*2 <<  8) +
+								(dst[i]*2 << 16) +
+								(dst[i]*2 << 24);
+			dst[i] = paintValue;
+		}
+	}
 }
 
-void sobel(jbyte* src, jint width, jint height, jint* dst) {
+void sobel(jbyte* src, jint width, jint height, jbyte* dst) {
 	int w = width;
 	int h = height;
 
@@ -72,7 +94,7 @@ void sobel(jbyte* src, jint width, jint height, jint* dst) {
 	int nW = 0;
 	int pW = 0;
 	int paintValue = 0;
-	int radius = 2;
+	int radius = 5;
 
 	for ( int y = 1; y < h - 1; y++ ) {
 
@@ -92,10 +114,17 @@ void sobel(jbyte* src, jint width, jint height, jint* dst) {
 			if ( sobelFinal < 88 ) sobelFinal = 0;
 			else sobelFinal = 255;
 
+			/*
 			paintValue =  	(sobelFinal <<  0) +
 							(sobelFinal <<  8) +
 							(sobelFinal << 16) +
 							(sobelFinal << 24);
+			 */
+
+			paintValue = 0;
+			if (sobelFinal > 0) {
+				paintValue = 1;
+			}
 
 			dst[pos] = paintValue;
 
