@@ -5,12 +5,6 @@ extern "C" {
 	JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output);
 };
 
-struct node {
-	node* parent;
-	int rank;
-};
-
-
 void sobel(jbyte* src, jint width, jint height, jbyte* dst);
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst);
 
@@ -87,13 +81,27 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 		}
 	}
 
+	int counter = 0;
 	for ( int i = 0; i < w*h; i++ ) {
 		if ( dst[i] != 0) {
-			int paintValue = 255;
-			paintValue = 	(paintValue <<  0) +
-							(paintValue <<  8) +
-							(paintValue << 16) +
-							(paintValue << 24);
+			int paintValue = (int) ( ( (float)dst[i] /regionCounter) *256);
+			if ( dst[i] % 3 == 0 ){
+				paintValue = 	(paintValue <<  0) +
+								(0 <<  8) +
+								(0 << 16) +
+								(255 << 24);
+			} else if (  dst[i] % 3 == 1 ) {
+				paintValue = 	(0 <<  0) +
+								(paintValue <<  8) +
+								(0 << 16) +
+								(255 << 24);
+			} else if (  dst[i] % 3 == 2 ) {
+				paintValue = 	(0 <<  0) +
+								(0 <<  8) +
+								(paintValue << 16) +
+								(255 << 24);
+			}
+
 			dst[i] = paintValue;
 		}
 	}

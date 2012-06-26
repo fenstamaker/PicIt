@@ -238,8 +238,8 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 	}
 
 	public void onAutoFocus(boolean arg0, Camera arg1) {
-		progressDialog = ProgressDialog.show(this, "Uploading", "");
-		camera.takePicture(null, null, photoCallback);	
+		//progressDialog = ProgressDialog.show(this, "Uploading", "");
+		//camera.takePicture(null, null, photoCallback);	
 	}
 
 	private Camera.PictureCallback photoCallback = new Camera.PictureCallback() {
