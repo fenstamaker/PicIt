@@ -1,6 +1,8 @@
 #include <jni.h>
 #include <limits.h>
 #include <vector>
+#include <algorithm>
+using namespace std;
 
 extern "C" {
 	JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output);
@@ -36,6 +38,9 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 
 	int regionCounter = 1;
 
+	vector<int> ids;
+	vector<int> equals;
+
 	for ( int y = 1; y < h - 1; y++ ) {
 
 		Y = y * w + 1;
@@ -62,9 +67,16 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 					// Finds minimum value
 					for ( int i = 0; i < 4; i++ ) {
 						// Makes sure the min is not zero
-						if ( values[i] < min && values[i] != 0 )
+						if ( values[i] < min && values[i] != 0 ) {
+							if (min != INT_MAX) {
+								ids.push_back(values[i]);
+								equals.push_back(min);
+							}
 							min = values[i];
+						}
 					}
+
+
 
 					// If min is zero, then something went wrong so set it to regionCounter
 					if ( min == 0 ) {
@@ -80,6 +92,10 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 				dst[pos] = 0;
 			}
 		}
+	}
+
+	for ( int i = 0; i < ids.size(); i++ ) {
+		replace(dst, dst + sizeof(dst)/sizeof(int), ids[i], equals[i]);
 	}
 
 	int counter = 0;
