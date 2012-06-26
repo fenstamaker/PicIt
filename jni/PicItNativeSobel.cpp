@@ -1,8 +1,15 @@
 #include <jni.h>
+#include <vector>
 
 extern "C" {
 	JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output);
 };
+
+struct node {
+	node* parent;
+	int rank;
+};
+
 
 void sobel(jbyte* src, jint width, jint height, jbyte* dst);
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst);
@@ -24,8 +31,6 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	int w = width;
 	int h = height;
 
-	int equals[256];
-
 	int Y = 0;
 	int pos = 0;
 	int north = 0;
@@ -44,39 +49,51 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 
 			pos = (Y+x);
 
-			if ( src[pos] > 0 ) {
+			if ( src[pos] != 0 ) {
 				north = pos-w;
 				northWest = north-1;
 				northEast = north+1;
 				west = pos-1;
 				east = pos+1;
 
+				// If there is nothing surrounding the pixel
 				if ( src[north] == 0 && src[northWest] == 0 && src[northEast] == 0 && src[west] == 0 ) {
 					dst[pos] = regionCounter;
 					regionCounter++;
 				} else {
 					int values[4] = { dst[north], dst[northWest], dst[northEast], dst[west] };
-					int min = dst[north];
+					int min = 0;
 
 					// Finds minimum value
 					for ( int i = 1; i < 4; i++ ) {
-						if ( values[i] < min )
+						// Makes sure the min is not zero
+						if ( values[i] < min && values[i] != 0 )
 							min = values[i];
 					}
 
-					// Sets current pixel to minimum
-					dst[pos] = min;
+					// If min is zero, then something went wrong so set it to regionCounter
+					if ( min == 0 ) {
+						dst[pos] = regionCounter;
+						regionCounter++;
+					} else {
+						// Sets current pixel to minimum
+						dst[pos] = min;
+					}
+
 				}
+			} else {
+				dst[pos] = 0;
 			}
 		}
 	}
 
 	for ( int i = 0; i < w*h; i++ ) {
 		if ( dst[i] != 0) {
-			int paintValue =  	(dst[i]*2 <<  0) +
-								(dst[i]*2 <<  8) +
-								(dst[i]*2 << 16) +
-								(dst[i]*2 << 24);
+			int paintValue = 255;
+			paintValue = 	(paintValue <<  0) +
+							(paintValue <<  8) +
+							(paintValue << 16) +
+							(paintValue << 24);
 			dst[i] = paintValue;
 		}
 	}

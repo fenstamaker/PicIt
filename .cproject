@@ -25,6 +25,10 @@
 							</builder>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1577827125" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="com.android.tool.compiler.g++.837029083" name="Android G++" superClass="com.android.tool.compiler.g++">
+								<option id="gnu.cpp.compiler.option.include.paths.1479788458" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="C:/Users/gf102/android-ndk/sources/cxx-stl/gnu-libstdc++/libs/armeabi-v7a/include"/>
+									<listOptionValue builtIn="false" value="C:/Users/gf102/android-ndk/sources/cxx-stl/gnu-libstdc++/include"/>
+								</option>
 								<inputType id="com.android.tool.compiler.g++.input.148729819" superClass="com.android.tool.compiler.g++.input"/>
 							</tool>
 							<tool id="com.android.tool.compiler.c.1068906978" name="Android GCC" superClass="com.android.tool.compiler.c">
