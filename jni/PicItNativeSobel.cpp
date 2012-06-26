@@ -1,4 +1,5 @@
 #include <jni.h>
+#include <limits.h>
 #include <vector>
 
 extern "C" {
@@ -56,10 +57,10 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 					regionCounter++;
 				} else {
 					int values[4] = { dst[north], dst[northWest], dst[northEast], dst[west] };
-					int min = 0;
+					int min = INT_MAX;
 
 					// Finds minimum value
-					for ( int i = 1; i < 4; i++ ) {
+					for ( int i = 0; i < 4; i++ ) {
 						// Makes sure the min is not zero
 						if ( values[i] < min && values[i] != 0 )
 							min = values[i];
@@ -84,25 +85,12 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	int counter = 0;
 	for ( int i = 0; i < w*h; i++ ) {
 		if ( dst[i] != 0) {
-			int paintValue = (int) ( ( (float)dst[i] /regionCounter) *256);
-			if ( dst[i] % 3 == 0 ){
-				paintValue = 	(paintValue <<  0) +
-								(0 <<  8) +
-								(0 << 16) +
-								(255 << 24);
-			} else if (  dst[i] % 3 == 1 ) {
-				paintValue = 	(0 <<  0) +
-								(paintValue <<  8) +
-								(0 << 16) +
-								(255 << 24);
-			} else if (  dst[i] % 3 == 2 ) {
-				paintValue = 	(0 <<  0) +
-								(0 <<  8) +
-								(paintValue << 16) +
-								(255 << 24);
-			}
+			int paintValue = (int) ( ( (float)dst[i] /regionCounter) * 256);
 
-			dst[i] = paintValue;
+			dst[i] = 	(paintValue <<  0) +
+						(paintValue <<  8) +
+						(paintValue << 16) +
+						(255 << 24);
 		}
 	}
 }
@@ -113,13 +101,14 @@ void sobel(jbyte* src, jint width, jint height, jbyte* dst) {
 
 	int sobelHorizontal = 0;
 	int sobelVertical = 0;
+
 	int sobelFinal = 0;
 	int Y = 0;
 	int pos = 0;
 	int nW = 0;
 	int pW = 0;
 	int paintValue = 0;
-	int radius = 5;
+	int radius = 10;
 
 	for ( int y = 1; y < h - 1; y++ ) {
 
@@ -156,18 +145,38 @@ void sobel(jbyte* src, jint width, jint height, jbyte* dst) {
 			if ( paintValue != 0 ) {
 
 				for ( int r = 0; r < radius; r++ ) {
-					if ( nW-r*w > 0 )
-						dst[nW-r*w] = paintValue;
-					if ( nW+r*w < w*h )
-						dst[nW+r*w] = paintValue;
-					if ( pW-r*w > 0 )
-						dst[pW-r*w] = paintValue;
-					if ( pW+r*w < w*h )
-						dst[pW+r*w] = paintValue;
-					if ( pos-r > 0 )
-						dst[pos-r] = paintValue;
-					if ( pos+r < w*h )
-						dst[pos+r] = paintValue;
+
+					int start = nW-(r*w);
+					for ( int i = start; i > start-(r/2); i-- ) {
+						if (i > 0)
+							dst[i] = paintValue;
+					}
+					start = nW+(r*w);
+					for ( int i = start; i < start+(r/2); i++ ) {
+						if (i < w*h)
+							dst[i] = paintValue;
+					}
+					start = pW-(r*w);
+					for ( int i = start; i > start-(r/2); i-- ) {
+						if (i > 0)
+							dst[i] = paintValue;
+					}
+					start = pW+(r*w);
+					for ( int i = start; i < start+(r/2); i++ ) {
+						if (i < w*h)
+							dst[i] = paintValue;
+					}
+					start = pos-r;
+					for ( int i = start; i > start-(r/2); i-- ) {
+						if (i > 0)
+							dst[i] = paintValue;
+					}
+					start = pos+r;
+					for ( int i = start; i < start+(r/2); i++ ) {
+						if (i < w*h)
+							dst[i] = paintValue;
+					}
+
 				}
 
 			}
