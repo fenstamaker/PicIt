@@ -38,8 +38,9 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 
 	int regionCounter = 1;
 
-	vector<int> ids;
-	vector<int> equals;
+	vector<int> equals; // To be replaced with
+	vector<int> counters; // Counts the number of instances of region #
+	counters.push_back(0); // There is no region 0
 
 	for ( int y = 1; y < h - 1; y++ ) {
 
@@ -59,37 +60,40 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 				// If there is nothing surrounding the pixel
 				if ( src[north] == 0 && src[northWest] == 0 && src[northEast] == 0 && src[west] == 0 ) {
 					dst[pos] = regionCounter;
+					counters.push_back(1);
+					equals.push_back(0);
 					regionCounter++;
 				} else {
-					int values[4] = { dst[north], dst[northWest], dst[northEast], dst[west] };
+					int values[4] = { dst[west], dst[north], dst[northWest], dst[northEast] };
 					int min = INT_MAX;
-					int counter = 0;
+					int counter = 0; // Counter ensures that there are a same number of ids as equals
 
 					// Finds minimum value
 					for ( int i = 0; i < 4; i++ ) {
 						// Makes sure the min is not zero
-						if ( values[i] < min && values[i] != 0 ) {
-							if (min != INT_MAX) {
-								ids.push_back(min);
-								counter++;
+						if ( values[i] != 0 ) {
+							if (values[i] < min) {
+								if (min != INT_MAX) {
+									equals[min] = values[i];
+								}
+								min = values[i];
 							}
-							min = values[i];
+
 						}
 					}
 
-					for ( int i = 0; i < counter; i++ ) {
-						equals.push_back(min);
-					}
 
 
-
-					// If min is zero, then something went wrong so set it to regionCounter
+					// If min is INT_MAX, then something went wrong so set it to regionCounter
 					if ( min == INT_MAX ) {
 						dst[pos] = regionCounter;
+						counters.push_back(1);
+						equals.push_back(0);
 						regionCounter++;
 					} else {
 						// Sets current pixel to minimum
 						dst[pos] = min;
+						counters[min]++;
 					}
 
 				}
@@ -99,20 +103,36 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 		}
 	}
 
-	int length = sizeof(dst)/sizeof(int);
-	for ( int i = 0; i < ids.size(); i++ ) {
-		replace(dst, dst + length, ids[i], equals[i]);
+	// Replace all occurances of ids[i] with respective equals[i] in dst
+	int length = w*h;
+	for ( int i = 0; i < length; i++ ) {
+		if (equals[dst[i]] != 0) {
+			dst[i] = equals[dst[i]];
+		}
 	}
 
-	int counter = 0;
+	// Finds max region
+	int max = 0;
+	for ( int i = 1; i < regionCounter; i++ ) {
+		if ( counters[i] > counters[max] ) {
+			max = i;
+		}
+	}
+
+	// Paints everything a certian color
 	for ( int i = 0; i < w*h; i++ ) {
-		if ( dst[i] != 0) {
+		if ( dst[i] != 0 && dst[i] == max) {
 			int paintValue = (int) ( ( (float)dst[i] /regionCounter) * 256);
 
 			dst[i] = 	(paintValue <<  0) +
 						(paintValue <<  8) +
 						(paintValue << 16) +
 						(255 << 24);
+		} else if ( dst[i] != 0 ) {
+			dst[i] =	(255 <<  0) +
+						(255 <<  8) +
+						(255 << 16) +
+						(255 << 24);;
 		}
 	}
 }
