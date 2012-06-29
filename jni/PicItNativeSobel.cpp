@@ -41,6 +41,7 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	vector<int> equals; // To be replaced with
 	vector<int> counters; // Counts the number of instances of region #
 	counters.push_back(0); // There is no region 0
+	equals.push_back(0);
 
 	for ( int y = 1; y < h - 1; y++ ) {
 
@@ -71,14 +72,11 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 					// Finds minimum value
 					for ( int i = 0; i < 4; i++ ) {
 						// Makes sure the min is not zero
-						if ( values[i] != 0 ) {
-							if (values[i] < min) {
-								if (min != INT_MAX) {
-									equals[min] = values[i];
-								}
-								min = values[i];
+						if ( values[i] != 0 && values[i] < min) {
+							if (min != INT_MAX) {
+								equals[min] = values[i];
 							}
-
+							min = values[i];
 						}
 					}
 
