@@ -63,23 +63,28 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 				} else {
 					int values[4] = { dst[north], dst[northWest], dst[northEast], dst[west] };
 					int min = INT_MAX;
+					int counter = 0;
 
 					// Finds minimum value
 					for ( int i = 0; i < 4; i++ ) {
 						// Makes sure the min is not zero
 						if ( values[i] < min && values[i] != 0 ) {
 							if (min != INT_MAX) {
-								ids.push_back(values[i]);
-								equals.push_back(min);
+								ids.push_back(min);
+								counter++;
 							}
 							min = values[i];
 						}
 					}
 
+					for ( int i = 0; i < counter; i++ ) {
+						equals.push_back(min);
+					}
+
 
 
 					// If min is zero, then something went wrong so set it to regionCounter
-					if ( min == 0 ) {
+					if ( min == INT_MAX ) {
 						dst[pos] = regionCounter;
 						regionCounter++;
 					} else {
@@ -94,8 +99,9 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 		}
 	}
 
+	int length = sizeof(dst)/sizeof(int);
 	for ( int i = 0; i < ids.size(); i++ ) {
-		replace(dst, dst + sizeof(dst)/sizeof(int), ids[i], equals[i]);
+		replace(dst, dst + length, ids[i], equals[i]);
 	}
 
 	int counter = 0;
