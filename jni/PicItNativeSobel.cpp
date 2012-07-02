@@ -10,7 +10,7 @@ extern "C" {
 
 void sobel(jbyte* src, jint width, jint height, jbyte* dst);
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst);
-void cc(jbyte* src, jint* dst, int* visited, int pos, int w, int h, int regionCounter);
+void cc(jbyte* src, jint* dst, vector<int> &visited, int pos, int w, int h, int regionCounter);
 
 JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output) {
 
@@ -43,7 +43,7 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
  *
  */
 
-void cc(jbyte* src, jint* dst, int* visited, int pos, int w, int h, int regionCounter) {
+void cc(jbyte* src, jint* dst, vector<int> &visited, int pos, int w, int h, int regionCounter) {
 	vector<int> values; // Holds all neighbor positions
 
 	int west = pos - 1;
@@ -67,6 +67,9 @@ void cc(jbyte* src, jint* dst, int* visited, int pos, int w, int h, int regionCo
 	}
 
 	visited[pos] = 1;
+
+
+
 
 	// Goes through each valid neighbor and
 	// and recursively runs this function
@@ -102,7 +105,8 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 
 	int regionCounter = 1;
 
-	int *visited = new int[w*h];
+	vector<int> visited;
+	visited.assign(w*h, 0);
 
 	for ( int y = 1; y < h - 1; y++ ) {
 
@@ -140,7 +144,6 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 		}
 	}
 
-	delete [] visited;
 }
 
 /*
