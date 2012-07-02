@@ -71,7 +71,6 @@ void cc(jbyte* src, jint* dst, int* visited, int pos, int w, int h, int regionCo
 	// Goes through each valid neighbor and
 	// and recursively runs this function
 	for ( int i = 0; i < values.size(); i++ ) {
-
 		if ( src[values[i]] == 1 && visited[values[i]] == 0 ) {
 			visited[values[i]] = 1;
 			cc(src, dst, visited, values[i], w, h, regionCounter);

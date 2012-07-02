@@ -25,16 +25,35 @@ public class HttpRequest {
 	private List<NameValuePair> nameValuePairs;
 	private HttpResponse response;
 	
+	/**
+	 * Instantiates a new http request to a given url.
+	 *
+	 * @param url the url
+	 */
 	public HttpRequest(String url) {
 		client = new DefaultHttpClient();
 		post = new HttpPost(url);
 		nameValuePairs = new ArrayList<NameValuePair>();
 	}
 	
+	/**
+	 * Adds a key-value pair.
+	 * 
+	 * Adds a key-value pair in HTTP POST to send to the server.
+	 *
+	 * @param key the key
+	 * @param value the value
+	 */
 	public void addValuePair(String key, String value) {
 		nameValuePairs.add(new BasicNameValuePair(key, value));
 	}
 	
+	/**
+	 * Executes the HTTP request.
+	 *
+	 * @throws ClientProtocolException the client protocol exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public void execute() throws ClientProtocolException, IOException {
 		if (!nameValuePairs.isEmpty()) {
 			post.setEntity(new UrlEncodedFormEntity(nameValuePairs));
@@ -42,6 +61,13 @@ public class HttpRequest {
         response = client.execute(post);
 	}
 	
+	/**
+	 * Gets the content of the web page.
+	 *
+	 * @return the content
+	 * @throws IllegalStateException the illegal state exception
+	 * @throws IOException Signals that an I/O exception has occurred.
+	 */
 	public String getContent() throws IllegalStateException, IOException {
 
         HttpEntity entity = response.getEntity();
