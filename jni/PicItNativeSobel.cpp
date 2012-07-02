@@ -10,6 +10,7 @@ extern "C" {
 
 void sobel(jbyte* src, jint width, jint height, jbyte* dst);
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst);
+void cc(jbyte* src, jint* dst, int* visited, int pos, int w, int h, int regionCounter);
 
 JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output) {
 
@@ -24,24 +25,51 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 	env->ReleaseByteArrayElements(frame, src, JNI_ABORT);
 }
 
+void cc(jbyte* src, jint* dst, int* visited, int pos, int w, int h, int regionCounter) {
+	vector<int> values;
+
+	int west = pos - 1;
+	int east = pos + 1;
+	int north = pos - w;
+	int northWest = north - 1;
+	int northEast = north + 1;
+	int south = pos + w;
+	int southWest = south - 1;
+	int southEast = south + 1;
+
+	int temp[8]    = { west, east, north, northWest, northEast, south, southWest, southEast };
+
+	for ( int i = 0; i < 8; i++ ) {
+		if ( temp[i] > 0 && temp[i] < w*h ) {
+			values.push_back(temp[i]);
+		}
+	}
+
+	visited[pos] = 1;
+
+	for ( int i = 0; i < values.size(); i++ ) {
+
+		if ( src[values[i]] == 1 && visited[values[i]] == 0 ) {
+			visited[values[i]] = 1;
+			cc(src, dst, visited, values[i], w, h, regionCounter);
+		}
+	}
+
+	dst[pos] = regionCounter;
+
+}
+
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	int w = width;
 	int h = height;
+	int length = w*h;
 
 	int Y = 0;
 	int pos = 0;
-	int north = 0;
-	int northWest = 0;
-	int northEast = 0;
-	int west = 0;
-	int east = 0;
 
 	int regionCounter = 1;
 
-	vector<int> equals; // To be replaced with
-	vector<int> counters; // Counts the number of instances of region #
-	counters.push_back(0); // There is no region 0
-	equals.push_back(0);
+	int *visited = new int[w*h];
 
 	for ( int y = 1; y < h - 1; y++ ) {
 
@@ -52,87 +80,30 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 			pos = (Y+x);
 
 			if ( src[pos] != 0 ) {
-				north = pos-w;
-				northWest = north-1;
-				northEast = north+1;
-				west = pos-1;
-				east = pos+1;
-
-				// If there is nothing surrounding the pixel
-				if ( src[north] == 0 && src[northWest] == 0 && src[northEast] == 0 && src[west] == 0 ) {
-					dst[pos] = regionCounter;
-					counters.push_back(1);
-					equals.push_back(0);
+				if ( visited[pos] != 1 ) {
+					cc(src, dst, visited, pos, w, h, regionCounter);
 					regionCounter++;
-				} else {
-					int values[4] = { dst[west], dst[north], dst[northWest], dst[northEast] };
-					int min = INT_MAX;
-					int counter = 0; // Counter ensures that there are a same number of ids as equals
-
-					// Finds minimum value
-					for ( int i = 0; i < 4; i++ ) {
-						// Makes sure the min is not zero
-						if ( values[i] != 0 && values[i] < min) {
-							if (min != INT_MAX) {
-								equals[min] = values[i];
-							}
-							min = values[i];
-						}
-					}
-
-
-
-					// If min is INT_MAX, then something went wrong so set it to regionCounter
-					if ( min == INT_MAX ) {
-						dst[pos] = regionCounter;
-						counters.push_back(1);
-						equals.push_back(0);
-						regionCounter++;
-					} else {
-						// Sets current pixel to minimum
-						dst[pos] = min;
-						counters[min]++;
-					}
-
 				}
 			} else {
 				dst[pos] = 0;
 			}
-		}
-	}
 
-	// Replace all occurances of ids[i] with respective equals[i] in dst
-	int length = w*h;
-	for ( int i = 0; i < length; i++ ) {
-		if (equals[dst[i]] != 0) {
-			dst[i] = equals[dst[i]];
-		}
-	}
-
-	// Finds max region
-	int max = 0;
-	for ( int i = 1; i < regionCounter; i++ ) {
-		if ( counters[i] > counters[max] ) {
-			max = i;
 		}
 	}
 
 	// Paints everything a certian color
 	for ( int i = 0; i < w*h; i++ ) {
-		if ( dst[i] != 0 && dst[i] == max) {
+		if ( dst[i] != 0 ) {
 			int paintValue = (int) ( ( (float)dst[i] /regionCounter) * 256);
 
 			dst[i] = 	(paintValue <<  0) +
 						(paintValue <<  8) +
 						(paintValue << 16) +
 						(255 << 24);
-		} else if ( dst[i] != 0 ) {
-			dst[i] =	(255 <<  0) +
-						(255 <<  8) +
-						(255 << 16) +
-						(255 << 24);;
 		}
 	}
+
+	delete [] visited;
 }
 
 void sobel(jbyte* src, jint width, jint height, jbyte* dst) {
@@ -148,7 +119,7 @@ void sobel(jbyte* src, jint width, jint height, jbyte* dst) {
 	int nW = 0;
 	int pW = 0;
 	int paintValue = 0;
-	int radius = 10;
+	int radius = 5;
 
 	for ( int y = 1; y < h - 1; y++ ) {
 
@@ -186,37 +157,13 @@ void sobel(jbyte* src, jint width, jint height, jbyte* dst) {
 
 				for ( int r = 0; r < radius; r++ ) {
 
-					int start = nW-(r*w);
-					for ( int i = start; i > start-(r/2); i-- ) {
-						if (i > 0)
-							dst[i] = paintValue;
+					for ( int tx = x-r; tx < x + r; tx++ ) {
+						for ( int ty = y-r; ty < y + r; ty++ ) {
+							int p = (ty*w+1) + tx;
+							if ( p > 0 && p < w*h )
+								dst[p] = paintValue;
+						}
 					}
-					start = nW+(r*w);
-					for ( int i = start; i < start+(r/2); i++ ) {
-						if (i < w*h)
-							dst[i] = paintValue;
-					}
-					start = pW-(r*w);
-					for ( int i = start; i > start-(r/2); i-- ) {
-						if (i > 0)
-							dst[i] = paintValue;
-					}
-					start = pW+(r*w);
-					for ( int i = start; i < start+(r/2); i++ ) {
-						if (i < w*h)
-							dst[i] = paintValue;
-					}
-					start = pos-r;
-					for ( int i = start; i > start-(r/2); i-- ) {
-						if (i > 0)
-							dst[i] = paintValue;
-					}
-					start = pos+r;
-					for ( int i = start; i < start+(r/2); i++ ) {
-						if (i < w*h)
-							dst[i] = paintValue;
-					}
-
 				}
 
 			}
