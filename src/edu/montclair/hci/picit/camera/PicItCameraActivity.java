@@ -47,8 +47,6 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 	
 	private PicItLocationManager locationService = PicItLocationManager.INSTANCE;
 
-	
-    /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -91,7 +89,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     		Log.d(TAG, "Camera Released");
     	}
     }
-    
+
     @Override
     public void onStop() {
     	super.onStop();
@@ -119,6 +117,18 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     	}
     }
     
+    /**
+     * Gets the optimal size.
+     * 
+     * Gets the optimal size by going through supported size and 
+     * finding the size that matches as closely as possible to
+     * the screen's size and ratio. Borrowed from Google's
+     * CameraPreview.java
+     *
+     * @param width the width
+     * @param height the height
+     * @return the optimal size
+     */
     private Size getOptimalSize(int width, int height) {
     	
     	Camera.Parameters params = camera.getParameters();
@@ -156,6 +166,16 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
     	return optimalSize;    	
     }
     
+    /**
+     * Gets the optimal picture size.
+     * 
+     * Gets the optimal picture size. Same as {@link getOptimalPreviewSize(int, int)} 
+     * but for the photo size instead of preview size.
+     *
+     * @param width the width
+     * @param height the height
+     * @return the optimal picture size
+     */
     private Size getOptimalPictureSize(int width, int height) {
     	
     	Camera.Parameters params = camera.getParameters();
@@ -202,6 +222,8 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 		
 		Size optimalSize = null;
 		
+		// Limits the preivew size to 800x400 for speed reasons
+		// If screen is smaller, then set it to screen size.
 		if (height > 480) {
 			optimalSize = getOptimalSize(800, 480);
 		} else {
@@ -210,6 +232,7 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 		
 		Size pictureSize = getOptimalPictureSize(800, 480);
 		
+		// Sets preview and picture size.
 		Camera.Parameters params = camera.getParameters();
 		params.setPreviewSize(optimalSize.width, optimalSize.height);
 		params.setPictureSize(pictureSize.width, pictureSize.height);
@@ -217,6 +240,8 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 		
 		camera.setParameters(params);
 		
+		// SurfaceView must change size along with the camera preview
+		// or else streching of the preview will happen.
 		surfaceView.layout(0, 0, optimalSize.width, optimalSize.height);
 		overlayView.setPreviewSize(optimalSize);
 		
@@ -233,10 +258,12 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 		
 	}
 
+	// Called when the button on screen is clicked.
 	public void onClick(View arg0) {
 		camera.autoFocus(this);	
 	}
 
+	// Called after the autofocus is done, can take picture afterwords or not.
 	public void onAutoFocus(boolean arg0, Camera arg1) {
 		//progressDialog = ProgressDialog.show(this, "Uploading", "");
 		//camera.takePicture(null, null, photoCallback);	
@@ -252,6 +279,9 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 		}
 	};
 	
+	/**
+	 * The Runnable object that uploads the photo on separate thread
+	 */
 	private Runnable uploadPhoto = new Runnable() {
 
 		public void run() {

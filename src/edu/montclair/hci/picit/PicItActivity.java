@@ -39,13 +39,12 @@ public class PicItActivity extends TabActivity {
         tabHost.addTab(spec);
 
         cameraIntent = new Intent().setClass(this, PicItCameraActivity.class);
-        //PicItCameraActivity.YOFFSET = tabHost.getTabWidget().getChildAt(0).getLayoutParams().height;
         
         spec = tabHost.newTabSpec("camera").setIndicator("", res.getDrawable(R.drawable.ic_tab_camera)).setContent(cameraIntent);
         tabHost.addTab(spec);
         
+        // Sets tab to the MapActivity
         tabHost.setCurrentTab(2); 
-        //Log.d("height ", "" +tabHost.getTabWidget().getChildAt(0).getLayoutParams().height);
        
     }
     

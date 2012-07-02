@@ -25,8 +25,26 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 	env->ReleaseByteArrayElements(frame, src, JNI_ABORT);
 }
 
+/*
+ * A recursive function that labels each region to the regionCounter
+ * Will go through each neighbor of a given position (pos) and
+ * recursively run this function until their are no more valid
+ * neighbors. Essentially, it is performing a depth-first search and
+ * creating a tree in the stack that can then be labeled with
+ * region counter.
+ *
+ * src - the source binary image from the Sobel edge detection
+ * dst - the final image to be created with the proper labeling
+ * visited - the array that marks visited pixels, 1 = visited 0 = not visited
+ * pos - the position of the given point, guaranteed to be an edge point and not already visited
+ * w - the image's width
+ * h - the image's height
+ * regionCounter - region label currently on
+ *
+ */
+
 void cc(jbyte* src, jint* dst, int* visited, int pos, int w, int h, int regionCounter) {
-	vector<int> values;
+	vector<int> values; // Holds all neighbor positions
 
 	int west = pos - 1;
 	int east = pos + 1;
@@ -39,6 +57,9 @@ void cc(jbyte* src, jint* dst, int* visited, int pos, int w, int h, int regionCo
 
 	int temp[8]    = { west, east, north, northWest, northEast, south, southWest, southEast };
 
+	// Checks to make sure that all above
+	// positions are within the array boundaries
+	// and puts them in the values vector
 	for ( int i = 0; i < 8; i++ ) {
 		if ( temp[i] > 0 && temp[i] < w*h ) {
 			values.push_back(temp[i]);
@@ -47,6 +68,8 @@ void cc(jbyte* src, jint* dst, int* visited, int pos, int w, int h, int regionCo
 
 	visited[pos] = 1;
 
+	// Goes through each valid neighbor and
+	// and recursively runs this function
 	for ( int i = 0; i < values.size(); i++ ) {
 
 		if ( src[values[i]] == 1 && visited[values[i]] == 0 ) {
@@ -55,9 +78,20 @@ void cc(jbyte* src, jint* dst, int* visited, int pos, int w, int h, int regionCo
 		}
 	}
 
+	// Sets the point as the region counter
+	// Will set all neighbors to regionCounter too
 	dst[pos] = regionCounter;
 
 }
+
+/*
+ * This function runs the above function on every point in the image
+ * and check in a given point is a valid edge point and hasen't already
+ * been visited.
+ *
+ * src - the source image from the sobel edge detection
+ * dst - the final output
+ */
 
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	int w = width;
@@ -79,12 +113,16 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 
 			pos = (Y+x);
 
+			// If the point is an edge and has not been visited
 			if ( src[pos] != 0 ) {
 				if ( visited[pos] != 1 ) {
+					// This function will label all connected points as regionCounter
 					cc(src, dst, visited, pos, w, h, regionCounter);
+					// Go to the next region
 					regionCounter++;
 				}
 			} else {
+				// Clears the dst buffer and prevents ghosting
 				dst[pos] = 0;
 			}
 
@@ -105,6 +143,15 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 
 	delete [] visited;
 }
+
+/*
+ * This function performs the Sobel Edge detection on a given
+ * image and output it to a given dst. It will label all edge
+ * points as 1 and non-edge points as 0
+ *
+ * src - the source image from the camera in NV21 format
+ * dst - the final binary image produced by the edge detection
+ */
 
 void sobel(jbyte* src, jint width, jint height, jbyte* dst) {
 	int w = width;
@@ -131,20 +178,15 @@ void sobel(jbyte* src, jint width, jint height, jbyte* dst) {
 			pW = pos+w;
 			nW = pos-w;
 
+			// Optimize sobel operation
 			sobelHorizontal =  src[pW-1] + src[pW+1] - src[nW+1] - src[nW-1] - src[nW]    - src[nW]    + src[pW]    + src[pW];
 			sobelVertical   =  src[pW+1] + src[nW+1] - src[nW-1] - src[pW-1] - src[pos-1] - src[pos-1] + src[pos+1] + src[pos+1];
 
+			// Used average instead of Pythagoras addition for speed purposes
 			sobelFinal = (sobelHorizontal + sobelVertical) / 2;
 
 			if ( sobelFinal < 88 ) sobelFinal = 0;
 			else sobelFinal = 255;
-
-			/*
-			paintValue =  	(sobelFinal <<  0) +
-							(sobelFinal <<  8) +
-							(sobelFinal << 16) +
-							(sobelFinal << 24);
-			 */
 
 			paintValue = 0;
 			if (sobelFinal > 0) {
@@ -155,14 +197,12 @@ void sobel(jbyte* src, jint width, jint height, jbyte* dst) {
 
 			if ( paintValue != 0 ) {
 
-				for ( int r = 0; r < radius; r++ ) {
-
-					for ( int tx = x-r; tx < x + r; tx++ ) {
-						for ( int ty = y-r; ty < y + r; ty++ ) {
-							int p = (ty*w+1) + tx;
-							if ( p > 0 && p < w*h )
-								dst[p] = paintValue;
-						}
+				// Dilation code
+				for ( int tx = x-radius; tx < x + radius; tx++ ) {
+					for ( int ty = y-radius; ty < y + radius; ty++ ) {
+						int p = (ty*w+1) + tx;
+						if ( p > 0 && p < w*h )
+							dst[p] = paintValue;
 					}
 				}
 

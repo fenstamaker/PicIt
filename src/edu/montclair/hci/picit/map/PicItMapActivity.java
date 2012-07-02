@@ -51,8 +51,13 @@ public class PicItMapActivity extends MapActivity {
 	    Drawable imageDrawable = this.getResources().getDrawable(R.drawable.point);
 	    imageOverlay = new MapOverlay(imageDrawable, this);
 	    
+	    // MyLocationOverlay automatically finds the user's location
+	    // and puts it on the back.
 	    myLocationOverlay = new MyLocationOverlay(this, mapView);
 	    mapOverlays.add(myLocationOverlay);
+	    
+	    // Runnable object that runs after finding the first location fix
+	    // Will center the map and zoom in on user than downloads surrounding images
 	    myLocationOverlay.runOnFirstFix(new Runnable() {
 			public void run() {
 				current = myLocationOverlay.getMyLocation();
