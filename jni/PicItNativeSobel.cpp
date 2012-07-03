@@ -2,6 +2,10 @@
 #include <limits.h>
 #include <vector>
 #include <algorithm>
+#include <android/log.h>
+
+#define APPNAME "PicItNativeSobel"
+
 using namespace std;
 
 extern "C" {
@@ -20,7 +24,11 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 
 	jbyte tempDst[width*height];
 	sobel(src, width, height, tempDst);
-	connectedComponent(tempDst, width, height, dst);
+	try {
+		connectedComponent(tempDst, width, height, dst);
+	} catch (int e) {
+		__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "Error caught:", e);
+	}
 
 	env->ReleaseByteArrayElements(frame, src, JNI_ABORT);
 }
@@ -61,15 +69,12 @@ void cc(jbyte* src, jint* dst, vector<int> &visited, int pos, int w, int h, int 
 	// positions are within the array boundaries
 	// and puts them in the values vector
 	for ( int i = 0; i < 8; i++ ) {
-		if ( temp[i] > 0 && temp[i] < w*h ) {
+		if ( temp[i] >= 0 && temp[i] < w*h ) {
 			values.push_back(temp[i]);
 		}
 	}
 
 	visited[pos] = 1;
-
-
-
 
 	// Goes through each valid neighbor and
 	// and recursively runs this function
@@ -108,11 +113,11 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	vector<int> visited;
 	visited.assign(w*h, 0);
 
-	for ( int y = 1; y < h - 1; y++ ) {
+	for ( int y = 0; y < h; y++ ) {
 
-		Y = y * w + 1;
+		Y = y * w;
 
-		for ( int x = 1; x < w - 1; x++ ) {
+		for ( int x = 0; x < w; x++ ) {
 
 			pos = (Y+x);
 
@@ -172,7 +177,7 @@ void sobel(jbyte* src, jint width, jint height, jbyte* dst) {
 
 	for ( int y = 1; y < h - 1; y++ ) {
 
-		Y = y * w + 1;
+		Y = y * w;
 
 		for ( int x = 1; x < w - 1; x++ ) {
 
