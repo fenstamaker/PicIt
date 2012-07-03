@@ -14,7 +14,7 @@ extern "C" {
 
 void sobel(jbyte* src, jint width, jint height, jbyte* dst);
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst);
-void cc(jbyte* src, jint* dst, vector<int> &visited, int pos, int w, int h, int regionCounter);
+void cc(jbyte* src, jint* dst, int *visited, int *temp, int pos, int w, int h, int regionCounter);
 
 JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output) {
 
@@ -22,13 +22,14 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 	jbyte *src = env->GetByteArrayElements(frame, &copy);
 	jint *dst = (jint*) env->GetDirectBufferAddress(output);
 
-	jbyte tempDst[width*height];
+	jbyte *tempDst = new jbyte[width*height];
 	sobel(src, width, height, tempDst);
 	try {
 		connectedComponent(tempDst, width, height, dst);
 	} catch (int e) {
 		__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "Error caught:", e);
 	}
+	delete [] tempDst;
 
 	env->ReleaseByteArrayElements(frame, src, JNI_ABORT);
 }
@@ -51,11 +52,10 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
  *
  */
 
-void cc(jbyte* src, jint* dst, vector<int> &visited, int pos, int w, int h, int regionCounter) {
-	vector<int> *values = new vector<int>; // Holds all neighbor positions
+void cc(jbyte* src, jint* dst, int *visited, int *temp, int pos, int w, int h, int regionCounter) {
+	vector<int> values; // Holds all neighbor positions
 
 	//int temp[8]    = { west, east, north, northWest, northEast, south, southWest, southEast };
-	int *temp = new int[8];
 	temp[0] = pos - 1;
 	temp[1] = pos + 1;
 	temp[2] = pos - w;
@@ -69,25 +69,19 @@ void cc(jbyte* src, jint* dst, vector<int> &visited, int pos, int w, int h, int 
 	// positions are within the array boundaries
 	// and puts them in the values vector
 	for ( int i = 0; i < 8; i++ ) {
-		if ( temp[i] >= 0 && temp[i] < w*h ) {
-			values->push_back(temp[i]);
+		if ( temp[i] >= 0 && temp[i] < w*h && visited[temp[i]] == 0 && src[temp[i]] == 1) {
+			values.push_back(temp[i]);
 		}
 	}
-
-	delete[] temp;
 
 	visited[pos] = 1;
 
 	// Goes through each valid neighbor and
 	// and recursively runs this function
-	for ( int i = 0; i < values->size(); i++ ) {
-		if ( src[values->at(i)] == 1 && visited[values->at(i)] == 0 ) {
-			visited[values->at(i)] = 1;
-			cc(src, dst, visited, values->at(i), w, h, regionCounter);
-		}
+	for ( int i = 0; i < values.size(); i++ ) {
+		visited[values[i]] = 1;
+		cc(src, dst, visited, temp, values[i], w, h, regionCounter);
 	}
-
-	delete values;
 
 	// Sets the point as the region counter
 	// Will set all neighbors to regionCounter too
@@ -114,8 +108,8 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 
 	int regionCounter = 1;
 
-	vector<int> visited;
-	visited.assign(w*h, 0);
+	int *visited = new int[w*h];
+	int *temp = new int[8];
 
 	for ( int y = 0; y < h; y++ ) {
 
@@ -129,7 +123,7 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 			if ( src[pos] != 0 ) {
 				if ( visited[pos] != 1 ) {
 					// This function will label all connected points as regionCounter
-					cc(src, dst, visited, pos, w, h, regionCounter);
+					cc(src, dst, visited, temp, pos, w, h, regionCounter);
 					// Go to the next region
 					regionCounter++;
 				}
@@ -196,7 +190,7 @@ void sobel(jbyte* src, jint width, jint height, jbyte* dst) {
 			// Used average instead of Pythagoras addition for speed purposes
 			sobelFinal = (sobelHorizontal + sobelVertical) / 2;
 
-			if ( sobelFinal < 88 ) sobelFinal = 0;
+			if ( sobelFinal < 128 ) sobelFinal = 0;
 			else sobelFinal = 255;
 
 			paintValue = 0;
