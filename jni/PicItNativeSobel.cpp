@@ -52,38 +52,42 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
  */
 
 void cc(jbyte* src, jint* dst, vector<int> &visited, int pos, int w, int h, int regionCounter) {
-	vector<int> values; // Holds all neighbor positions
+	vector<int> *values = new vector<int>; // Holds all neighbor positions
 
-	int west = pos - 1;
-	int east = pos + 1;
-	int north = pos - w;
-	int northWest = north - 1;
-	int northEast = north + 1;
-	int south = pos + w;
-	int southWest = south - 1;
-	int southEast = south + 1;
-
-	int temp[8]    = { west, east, north, northWest, northEast, south, southWest, southEast };
+	//int temp[8]    = { west, east, north, northWest, northEast, south, southWest, southEast };
+	int *temp = new int[8];
+	temp[0] = pos - 1;
+	temp[1] = pos + 1;
+	temp[2] = pos - w;
+	temp[3] = pos - w - 1;
+	temp[4] = pos - w + 1;
+	temp[5] = pos + w;
+	temp[6] = pos + w - 1;
+	temp[7] = pos + w + 1;
 
 	// Checks to make sure that all above
 	// positions are within the array boundaries
 	// and puts them in the values vector
 	for ( int i = 0; i < 8; i++ ) {
 		if ( temp[i] >= 0 && temp[i] < w*h ) {
-			values.push_back(temp[i]);
+			values->push_back(temp[i]);
 		}
 	}
+
+	delete[] temp;
 
 	visited[pos] = 1;
 
 	// Goes through each valid neighbor and
 	// and recursively runs this function
-	for ( int i = 0; i < values.size(); i++ ) {
-		if ( src[values[i]] == 1 && visited[values[i]] == 0 ) {
-			visited[values[i]] = 1;
-			cc(src, dst, visited, values[i], w, h, regionCounter);
+	for ( int i = 0; i < values->size(); i++ ) {
+		if ( src[values->at(i)] == 1 && visited[values->at(i)] == 0 ) {
+			visited[values->at(i)] = 1;
+			cc(src, dst, visited, values->at(i), w, h, regionCounter);
 		}
 	}
+
+	delete values;
 
 	// Sets the point as the region counter
 	// Will set all neighbors to regionCounter too
