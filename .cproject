@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+<?fileVersion 4.0.0?>
+
+<cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="com.android.toolchain.gcc.1894937245">
 			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="com.android.toolchain.gcc.1894937245" moduleId="org.eclipse.cdt.core.settings" name="Default">
@@ -14,20 +16,20 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration buildProperties="" description="" id="com.android.toolchain.gcc.1894937245" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
+				<configuration artifactName="PicIt" buildProperties="" description="" id="com.android.toolchain.gcc.1894937245" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
 					<folderInfo id="com.android.toolchain.gcc.1894937245.1003459406" name="/" resourcePath="">
 						<toolChain id="com.android.toolchain.gcc.2081572643" name="com.android.toolchain.gcc" superClass="com.android.toolchain.gcc">
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="com.android.targetPlatform.159224096" name="Android Platform" osList="all" superClass="com.android.targetPlatform"/>
-							<builder arguments="" command="C:\Users\gf102\android-ndk\ndk-build.cmd" id="com.android.builder.811794757" keepEnvironmentInBuildfile="false" managedBuildOn="false" superClass="com.android.builder">
+							<builder arguments="" command="C:\android-ndk\ndk-build.cmd" id="com.android.builder.811794757" keepEnvironmentInBuildfile="false" managedBuildOn="false" superClass="com.android.builder">
 								<outputEntries>
 									<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="outputPath" name="libs"/>
 								</outputEntries>
 							</builder>
 							<tool id="cdt.managedbuild.tool.gnu.archiver.base.1577827125" name="GCC Archiver" superClass="cdt.managedbuild.tool.gnu.archiver.base"/>
 							<tool id="com.android.tool.compiler.g++.837029083" name="Android G++" superClass="com.android.tool.compiler.g++">
-								<option id="gnu.cpp.compiler.option.include.paths.1479788458" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="C:/Users/gf102/android-ndk/sources/cxx-stl/gnu-libstdc++/libs/armeabi-v7a/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/gf102/android-ndk/sources/cxx-stl/gnu-libstdc++/include"/>
+								<option id="gnu.cpp.compiler.option.include.paths.1479788458" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="C:/android-ndk/sources/cxx-stl/gnu-libstdc++/libs/armeabi-v7a/include"/>
+									<listOptionValue builtIn="false" value="C:/android-ndk/sources/cxx-stl/gnu-libstdc++/include"/>
 								</option>
 								<inputType id="com.android.tool.compiler.g++.input.148729819" superClass="com.android.tool.compiler.g++.input"/>
 							</tool>
