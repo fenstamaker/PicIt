@@ -1,6 +1,7 @@
 #include <jni.h>
 #include <limits.h>
 #include <vector>
+#include <stack>
 #include <algorithm>
 #include <android/log.h>
 
@@ -14,7 +15,7 @@ extern "C" {
 
 void sobel(jbyte* src, jint width, jint height, jbyte* dst);
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst);
-void cc(jbyte* src, jint* dst, int *visited, int *temp, int pos, int w, int h, int regionCounter);
+void cc(jbyte* src, jint* dst, int *visited, int pos, int w, int h, int regionCounter);
 
 JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output) {
 
@@ -23,12 +24,10 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 	jint *dst = (jint*) env->GetDirectBufferAddress(output);
 
 	jbyte *tempDst = new jbyte[width*height];
+
 	sobel(src, width, height, tempDst);
-	try {
-		connectedComponent(tempDst, width, height, dst);
-	} catch (int e) {
-		__android_log_print(ANDROID_LOG_VERBOSE, APPNAME, "Error caught:", e);
-	}
+	connectedComponent(tempDst, width, height, dst);
+
 	delete [] tempDst;
 
 	env->ReleaseByteArrayElements(frame, src, JNI_ABORT);
@@ -52,41 +51,49 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
  *
  */
 
-void cc(jbyte* src, jint* dst, int *visited, int *temp, int pos, int w, int h, int regionCounter) {
-	vector<int> values; // Holds all neighbor positions
+void cc(jbyte* src, jint* dst, int *visited, int pos, int w, int h, int regionCounter) {
+	stack<int> positions;
 
-	//int temp[8]    = { west, east, north, northWest, northEast, south, southWest, southEast };
-	temp[0] = pos - 1;
-	temp[1] = pos + 1;
-	temp[2] = pos - w;
-	temp[3] = pos - w - 1;
-	temp[4] = pos - w + 1;
-	temp[5] = pos + w;
-	temp[6] = pos + w - 1;
-	temp[7] = pos + w + 1;
+	positions.push(pos);
 
-	// Checks to make sure that all above
-	// positions are within the array boundaries
-	// and puts them in the values vector
-	for ( int i = 0; i < 8; i++ ) {
-		if ( temp[i] >= 0 && temp[i] < w*h && visited[temp[i]] == 0 && src[temp[i]] == 1) {
-			values.push_back(temp[i]);
+	int *temp = new int[8];
+	int tempPos = positions.top();
+
+	while ( true ) {
+		temp[0] = tempPos - 1;
+		temp[1] = tempPos + 1;
+		temp[2] = tempPos - w;
+		temp[3] = tempPos - w - 1;
+		temp[4] = tempPos - w + 1;
+		temp[5] = tempPos + w;
+		temp[6] = tempPos + w - 1;
+		temp[7] = tempPos + w + 1;
+
+		visited[tempPos] = 1;
+
+		// Checks to make sure that all above
+		// positions are within the array boundaries
+		// and puts them in the values vector
+		bool isEmpty = true;
+		for ( int i = 0; i < 8; i++ ) {
+			if ( temp[i] >= 0 && temp[i] < w*h && visited[temp[i]] == 0 && src[temp[i]] == 1) {
+				isEmpty = false;
+				positions.push(temp[i]);
+			}
 		}
+
+		if ( isEmpty ) {
+			dst[positions.top()] = regionCounter;
+			positions.pop();
+		}
+
+		if ( positions.empty() )
+			break;
+
+		tempPos = positions.top();
 	}
 
-	visited[pos] = 1;
-
-	// Goes through each valid neighbor and
-	// and recursively runs this function
-	for ( int i = 0; i < values.size(); i++ ) {
-		visited[values[i]] = 1;
-		cc(src, dst, visited, temp, values[i], w, h, regionCounter);
-	}
-
-	// Sets the point as the region counter
-	// Will set all neighbors to regionCounter too
-	dst[pos] = regionCounter;
-
+	delete [] temp;
 }
 
 /*
@@ -109,7 +116,6 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	int regionCounter = 1;
 
 	int *visited = new int[w*h];
-	int *temp = new int[8];
 
 	for ( int y = 0; y < h; y++ ) {
 
@@ -123,7 +129,7 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 			if ( src[pos] != 0 ) {
 				if ( visited[pos] != 1 ) {
 					// This function will label all connected points as regionCounter
-					cc(src, dst, visited, temp, pos, w, h, regionCounter);
+					cc(src, dst, visited, pos, w, h, regionCounter);
 					// Go to the next region
 					regionCounter++;
 				}
@@ -134,6 +140,8 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 
 		}
 	}
+
+	delete [] visited;
 
 	// Paints everything a certian color
 	for ( int i = 0; i < w*h; i++ ) {
