@@ -6,12 +6,16 @@ ConnectComponent::ConnectComponent(jbyte* s, jint* d, int w, int h) {
 	width = w;
 	height = h;
 	length = w*h;
-	mark = 1;
+	label = 1;
+	connections.push_back(FB);
+	connections.push_back(FO);
 }
 
 void ConnectComponent::run() {
 	int Y = 0;
 	int pos = 0;
+
+	forwards = true;
 
 	int regionCounter = 1;
 
@@ -23,19 +27,53 @@ void ConnectComponent::run() {
 
 			pos = (Y+x);
 
-			dst[pos] = g(pos);
+			std::vector<int> mask;
 
+			generateMask(mask, pos);
+
+			dst[pos] = g(pos, mask);
+
+			forwards = false;
 		}
 	}
 }
 
-int ConnectComponent::g(int pos) {
+int ConnectComponent::g(int pos, std::vector<int> &mask) {
+	if ( b(pos) == FB )
+		return FB;
 
-	if( src[pos] == 0 )
-		return 0;
+	std::vector<int> values;
 
-	std::vector<int> mask;
+	for ( int  i = 0; i < mask.size(); i++ ) {
+		std::vector<int> tempMask;
+		generateMask(tempMask, mask[i]);
+		int value = g(mask[i], tempMask);
+		dst[pos] = value;
+		values.push_back( value );
+	}
 
+	int zeros = std::count(values.begin(), values.end(), FB);
+	if ( zeros == values.size() ) {
+		return mark();
+	}
+
+	int min = INT_MAX;
+	for ( int i = 0; i < mask.size(); i++ ) {
+		if ( connections[values[i]] < min &&  connections[values[i]] != FB ) {
+			min = connections[values[i]];
+		}
+	}
+
+	for ( int i = 0; i < mask.size(); i++ ) {
+		if ( values[i] != FB ) {
+			connections[values[i]] = min;
+		}
+	}
+
+	return min;
+}
+
+void ConnectComponent::generateMask(std::vector<int> &mask, int pos) {
 	int west = pos - 1;
 	int east = pos + 1;
 	int north = pos - width;
@@ -45,32 +83,43 @@ int ConnectComponent::g(int pos) {
 	int southWest = south - 1;
 	int southEast = south + 1;
 
-	int temp[8]    = { west, east, north, northWest, northEast, south, southWest, southEast };
+	int forward[4] = { northWest, north, northEast, west };
+	int backward[4] = { southEast, south, southWest, east };
+
 
 	// Checks to make sure that all above
 	// positions are within the array boundaries
 	// and puts them in the values vector
-	for ( int i = 0; i < 8; i++ ) {
-		if ( temp[i] > 0 && temp[i] < length ) {
-			mask.push_back(temp[i]);
+	// Also checks which mask to implement
+	if ( forwards ) {
+		for ( int i = 0; i < 4; i++ ) {
+			if ( forward[i] > 0 && forward[i] < length ) {
+				mask.push_back(forward[i]);
+			}
+		}
+	} else {
+		for ( int i = 0; i < 4; i++ ) {
+			if ( backward[i] > 0 && backward[i] < length ) {
+				mask.push_back(backward[i]);
+			}
 		}
 	}
+}
 
-	bool isEmpty = true;
-	for ( int i = 0; i < mask.size(); i++ ) {
-		if ( src[mask[i]] != 0 ) {
-			isEmpty = false;
-			break;
-		}
-	}
+int ConnectComponent::b(int pos) {
+	return dst[pos];
+}
 
-	if ( isEmpty ) {
-		int temp = mark;
-		mark++;
-		return mark;
-	}
+int ConnectComponent::mark() {
+	int temp = label;
+	connections[label] = label;
+	label++;
+	connections.push_back(0);
+	return temp;
+}
 
-
+int ConnectComponent::mark(int l) {
+	return l;
 }
 
 ConnectComponent::~ConnectComponent() {

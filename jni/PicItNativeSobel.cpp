@@ -39,11 +39,12 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 
 	ConnectComponent *CC = new ConnectComponent(src, dst, width, height);
+	CC->run();
 
 	// Paints everything a certain color
 	for ( int i = 0; i < width*height; i++ ) {
 		if ( dst[i] != 0 ) {
-			int paintValue = (int) ( ( (float)dst[i] /CC->numberOfRegions) * 256);
+			int paintValue = (int) ( ( (float)dst[i] /CC->label) * 256);
 
 			dst[i] = 	(paintValue <<  0) +
 						(paintValue <<  8) +

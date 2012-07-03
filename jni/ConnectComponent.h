@@ -1,8 +1,13 @@
 #ifndef CONNECTCOMPONENT_H_
 #define CONNECTCOMPONENT_H_
 
+#include <limits.h>
 #include <jni.h>
 #include <vector>
+#include <algorithm>
+
+const int FB = 0;
+const int FO = 1;
 
 class ConnectComponent {
 public:
@@ -11,7 +16,8 @@ public:
 	virtual ~ConnectComponent();
 
 	int numberOfRegions;
-	int mark;
+	int label;
+	bool forwards;
 private:
 	jbyte *src;
 	jint *dst;
@@ -21,7 +27,11 @@ private:
 	int width;
 	int height;
 
-	int g(int pos);
+	int g(int pos, std::vector<int> &mask);
+	int b(int pos);
+	int mark();
+	int mark(int l);
+	void generateMask(std::vector<int> &mask, int pos);
 };
 
 #endif /* CONNECTCOMPONENT_H_ */
