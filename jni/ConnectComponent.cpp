@@ -1,5 +1,4 @@
 #include "ConnectComponent.h"
-#include <vector>
 
 ConnectComponent::ConnectComponent(jbyte* s, jint* d, int w, int h) {
 	src = s;
@@ -7,6 +6,7 @@ ConnectComponent::ConnectComponent(jbyte* s, jint* d, int w, int h) {
 	width = w;
 	height = h;
 	length = w*h;
+	mark = 1;
 }
 
 void ConnectComponent::run() {
@@ -30,6 +30,10 @@ void ConnectComponent::run() {
 }
 
 int ConnectComponent::g(int pos) {
+
+	if( src[pos] == 0 )
+		return 0;
+
 	std::vector<int> mask;
 
 	int west = pos - 1;
@@ -50,6 +54,20 @@ int ConnectComponent::g(int pos) {
 		if ( temp[i] > 0 && temp[i] < length ) {
 			mask.push_back(temp[i]);
 		}
+	}
+
+	bool isEmpty = true;
+	for ( int i = 0; i < mask.size(); i++ ) {
+		if ( src[mask[i]] != 0 ) {
+			isEmpty = false;
+			break;
+		}
+	}
+
+	if ( isEmpty ) {
+		int temp = mark;
+		mark++;
+		return mark;
 	}
 
 

@@ -2,6 +2,7 @@
 #define CONNECTCOMPONENT_H_
 
 #include <jni.h>
+#include <vector>
 
 class ConnectComponent {
 public:
@@ -10,9 +11,11 @@ public:
 	virtual ~ConnectComponent();
 
 	int numberOfRegions;
+	int mark;
 private:
 	jbyte *src;
 	jint *dst;
+	std::vector<int> connections;
 
 	int length;
 	int width;
