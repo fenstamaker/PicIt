@@ -15,7 +15,7 @@ extern "C" {
 
 void sobel(jbyte* src, jint width, jint height, jbyte* dst);
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst);
-void cc(jbyte* src, jint* dst, int *visited, int pos, int w, int h, int regionCounter);
+void cc(jbyte* src, jint* dst, int *visited, vector<int> &counter, int pos, int w, int h, int regionCounter);
 
 JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output) {
 
@@ -51,7 +51,7 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
  *
  */
 
-void cc(jbyte* src, jint* dst, int *visited, int pos, int w, int h, int regionCounter) {
+void cc(jbyte* src, jint* dst, int *visited, vector<int> &counter, int pos, int w, int h, int regionCounter) {
 	stack<int> positions;
 
 	positions.push(pos);
@@ -84,6 +84,7 @@ void cc(jbyte* src, jint* dst, int *visited, int pos, int w, int h, int regionCo
 
 		if ( isEmpty ) {
 			dst[positions.top()] = regionCounter;
+			counter[regionCounter]++;
 			positions.pop();
 		}
 
@@ -116,6 +117,9 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	int regionCounter = 1;
 
 	int *visited = new int[w*h];
+	vector<int> counter;
+	counter.push_back(0);
+	counter.push_back(0);
 
 	for ( int y = 0; y < h; y++ ) {
 
@@ -129,9 +133,10 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 			if ( src[pos] != 0 ) {
 				if ( visited[pos] != 1 ) {
 					// This function will label all connected points as regionCounter
-					cc(src, dst, visited, pos, w, h, regionCounter);
+					cc(src, dst, visited, counter, pos, w, h, regionCounter);
 					// Go to the next region
 					regionCounter++;
+					counter.push_back(0);
 				}
 			} else {
 				// Clears the dst buffer and prevents ghosting
@@ -143,15 +148,27 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 
 	delete [] visited;
 
+	int max = 0;
+	for ( int i = 0; i < counter.size(); i++ ) {
+		if ( counter[i] > counter[max] ) {
+			max = i;
+		}
+	}
+
 	// Paints everything a certian color
 	for ( int i = 0; i < w*h; i++ ) {
 		if ( dst[i] != 0 ) {
-			int paintValue = (int) ( ( (float)dst[i] /regionCounter) * 256);
+			if ( dst[i] == max ) {
+				int paintValue = (int) ( ( (float)dst[i] /regionCounter) * 256);
 
-			dst[i] = 	(paintValue <<  0) +
-						(paintValue <<  8) +
-						(paintValue << 16) +
-						(255 << 24);
+				dst[i] = 	(255 <<  0) +
+							(255 <<  8) +
+							(255 << 16) +
+							(255 << 24);
+			} else {
+				dst[i] = 0;
+			}
+
 		}
 	}
 
