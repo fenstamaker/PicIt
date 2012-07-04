@@ -15,7 +15,7 @@ extern "C" {
 
 void sobel(jbyte* src, jint width, jint height, jbyte* dst);
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst);
-void cc(jbyte* src, jint* dst, int *visited, int pos, int w, int h, int regionCounter);
+void cc(jbyte* src, jint* dst, int *visited, vector<int> &connections, bool forwards, int pos, int w, int h, int regionCounter);
 
 JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output) {
 
@@ -51,23 +51,27 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
  *
  */
 
-void cc(jbyte* src, jint* dst, int *visited, int pos, int w, int h, int regionCounter) {
+void cc(jbyte* src, jint* dst, int *visited, vector<int> &connections, bool forwards, int pos, int w, int h, int regionCounter) {
 	stack<int> positions;
 
 	positions.push(pos);
 
-	int *temp = new int[8];
+	int *temp = new int[4];
 	int tempPos = positions.top();
 
 	while ( true ) {
-		temp[0] = tempPos - 1;
-		temp[1] = tempPos + 1;
-		temp[2] = tempPos - w;
-		temp[3] = tempPos - w - 1;
-		temp[4] = tempPos - w + 1;
-		temp[5] = tempPos + w;
-		temp[6] = tempPos + w - 1;
-		temp[7] = tempPos + w + 1;
+
+		if ( forwards ) {
+			temp[0] = tempPos - w - 1;
+			temp[1] = tempPos - w;
+			temp[2] = tempPos - w + 1;
+			temp[3] = tempPos - 1;
+		} else {
+			temp[0] = tempPos + w + 1;
+			temp[1] = tempPos + w;
+			temp[2] = tempPos + w - 1;
+			temp[3] = tempPos + 1;
+		}
 
 		visited[tempPos] = 1;
 
@@ -75,10 +79,22 @@ void cc(jbyte* src, jint* dst, int *visited, int pos, int w, int h, int regionCo
 		// positions are within the array boundaries
 		// and puts them in the values vector
 		bool isEmpty = true;
-		for ( int i = 0; i < 8; i++ ) {
-			if ( temp[i] >= 0 && temp[i] < w*h && visited[temp[i]] == 0 && src[temp[i]] == 1) {
-				isEmpty = false;
-				positions.push(temp[i]);
+		int min = INT_MAX;
+		for ( int i = 0; i < 4; i++ ) {
+			if ( temp[i] >= 0 && temp[i] < w*h && src[temp[i]] == 1) {
+
+				if ( visited[temp[i]] != 0 ) {
+					if ( dst[temp[i]] < min && dst[temp[i]] != 0 ) {
+						min = dst[temp[i]];
+					}
+					if ( min != INT_MAX ) {
+						connections[dst[temp[i]]] = min;
+					}
+
+				} else {
+					isEmpty = false;
+					positions.push(temp[i]);
+				}
 			}
 		}
 
@@ -114,8 +130,12 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	int pos = 0;
 
 	int regionCounter = 1;
+	bool forwards = true;
 
 	int *visited = new int[w*h];
+	vector<int> connections;
+	connections.push_back(0);
+	connections.push_back(1);
 
 	for ( int y = 0; y < h; y++ ) {
 
@@ -129,9 +149,11 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 			if ( src[pos] != 0 ) {
 				if ( visited[pos] != 1 ) {
 					// This function will label all connected points as regionCounter
-					cc(src, dst, visited, pos, w, h, regionCounter);
+					cc(src, dst, visited, connections, forwards, pos, w, h, regionCounter);
 					// Go to the next region
 					regionCounter++;
+					connections.push_back(0);
+					forwards = !forwards;
 				}
 			} else {
 				// Clears the dst buffer and prevents ghosting
@@ -139,6 +161,10 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 			}
 
 		}
+	}
+
+	for ( int i = 0; i < w*h; i++ ) {
+		dst[i] = connections[dst[i]];
 	}
 
 	delete [] visited;
