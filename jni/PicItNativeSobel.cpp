@@ -79,27 +79,35 @@ void cc(jbyte* src, jint* dst, int *visited, vector<int> &connections, bool forw
 		// positions are within the array boundaries
 		// and puts them in the values vector
 		bool isEmpty = true;
-		int min = INT_MAX;
 		for ( int i = 0; i < 4; i++ ) {
-			if ( temp[i] >= 0 && temp[i] < w*h && src[temp[i]] == 1) {
-
-				if ( visited[temp[i]] != 0 ) {
-					if ( dst[temp[i]] < min && dst[temp[i]] != 0 ) {
-						min = dst[temp[i]];
-					}
-					if ( min != INT_MAX ) {
-						connections[dst[temp[i]]] = min;
-					}
-
-				} else {
-					isEmpty = false;
-					positions.push(temp[i]);
-				}
+			if ( temp[i] >= 0 && temp[i] < w*h && visited[temp[i]] == 0 && src[temp[i]] == 1) {
+				isEmpty = false;
+				positions.push(temp[i]);
 			}
 		}
 
 		if ( isEmpty ) {
-			dst[positions.top()] = regionCounter;
+
+			int min = INT_MAX;
+			for ( int i = 0; i < 4; i++ ) {
+				if ( temp[i] > 0 && temp[i] < w*h && dst[temp[i]] != 0 && dst[temp[i]] < min  ) {
+					min = dst[temp[i]];
+				}
+			}
+
+			if ( min != INT_MAX ) {
+
+				for ( int i = 0; i < 4; i++ ) {
+					if ( temp[i] > 0 && temp[i] < w*h && dst[temp[i]] != 0 && dst[temp[i]] < connections.size() ) {
+						connections[dst[temp[i]]] = min;
+					}
+				}
+
+				dst[positions.top()] = min;
+
+			} else {
+				dst[positions.top()] = regionCounter;
+			}
 			positions.pop();
 		}
 
