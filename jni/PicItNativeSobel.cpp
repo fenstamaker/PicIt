@@ -27,19 +27,20 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 	jbyte *src = env->GetByteArrayElements(frame, &copy);
 	jint *dst = (jint*) env->GetDirectBufferAddress(output);
 
-	jbyte *tempDst = new jbyte[width*height];
+	jbyte *sobelDst = new jbyte[width*height];
+	jbyte *greenDst = new jbyte[width*height];
 
 	SobelEdgeDetection *sobel = new SobelEdgeDetection(src, (int)width, (int)height);
-	sobel->performSobel(tempDst);
+	sobel->performSobel(sobelDst);
 
 	ImageClassifier *classifier = new ImageClassifier(src, width, height);
-	int *rgb = new int[width*height];
-	classifier->convert(rgb);
+	classifier->convert();
+	classifier->greenBlobDetection(greenDst);
 
-	connectedComponent(tempDst, width, height, dst);
+	connectedComponent(greenDst, width, height, dst);
 
-	delete [] tempDst;
-	delete [] rgb;
+	delete [] sobelDst;
+	delete [] greenDst;
 
 	env->ReleaseByteArrayElements(frame, src, JNI_ABORT);
 }
