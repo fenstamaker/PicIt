@@ -2,6 +2,7 @@
 #include <limits.h>
 #include <vector>
 #include <stack>
+#include <queue>
 #include <algorithm>
 #include <android/log.h>
 
@@ -121,11 +122,11 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	counter.push_back(0);
 	counter.push_back(0);
 
-	for ( int y = 0; y < h; y++ ) {
+	for ( int y = 1; y < h-1; y++ ) {
 
 		Y = y * w;
 
-		for ( int x = 0; x < w; x++ ) {
+		for ( int x = 1; x < w-1; x++ ) {
 
 			pos = (Y+x);
 
@@ -162,11 +163,16 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 				int paintValue = (int) ( ( (float)dst[i] /regionCounter) * 256);
 
 				dst[i] = 	(255 <<  0) +
-							(255 <<  8) +
-							(255 << 16) +
+							(0 <<  8) +
+							(0 << 16) +
 							(255 << 24);
 			} else {
-				dst[i] = 0;
+				int paintValue = (int) ( ( (float)dst[i] /regionCounter) * 256);
+
+				dst[i] = 	(paintValue <<  0) +
+							(paintValue <<  8) +
+							(paintValue << 16) +
+							(255 << 24);
 			}
 
 		}
