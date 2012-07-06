@@ -16,6 +16,7 @@ void ImageClassifier::YUV444toRGB8888(int y, int u, int v, int &r, int &g, int &
 	d = u - 128;
 	e = v - 128;
 
+	// Constants gained from Wikipedia
 	r = (298 * c + 409 * e + 128) >> 8;
 	if ( r < 0 ) r = 0;
 	if ( r > 255) r = 255;
@@ -33,28 +34,43 @@ void ImageClassifier::YUV444toRGB8888(int y, int u, int v, int &r, int &g, int &
 // convert YUV444 to RGB8888;
 void ImageClassifier::convert(){
 
-	int y1, y2, y3, y4, u, v;
+	int y, u, v, uvPos, yPos;
 	int r, g, b;
-	int pos;
-	int level = 0;
 
-	for (int j = 0, yp = 0; j < height; j++) {
-		int uvp = length + (j >> 1) * width, u = 0, v = 0;
-		for (int i = 0; i < width; i++, yp++) {
-			int y = (0xff & ((int) src[yp])) - 16;
+	// Idea from the Ketai Code Project
+	for (int j = 0; j < height; j++) {
+
+		// The j >> 1 gives the beginning X, Y coords of the required V, U
+		uvPos = length + (j >> 1) * width;
+		y = 0;
+		u = 0;
+		v = 0;
+
+		for (int i = 0; i < width; i++) {
+			yPos = j*width + i;
+
+			// 0xff clamps the YUV values to 255
+			y = ((int) src[yPos]) & 0xff;
+
+			// Clamps Y value to be above 0
 			if (y < 0)
 			  y = 0;
+
+			// If we're in the first of a new 2x2 square, set initial U, V values
 			if ((i & 1) == 0) {
-			  v = (0xff & src[uvp++]) - 128;
-			  u = (0xff & src[uvp++]) - 128;
+				uvPos++;
+				v = src[uvPos] & 0xff;
+				uvPos++;
+				u = src[uvPos] & 0xff;
 			}
 
 			YUV444toRGB8888(y, u, v, r, g, b);
 
-			rgb[yp] = 	(r <<  0) +
-						(g <<  8) +
-						(b << 16) +
-						(255 << 24);
+			// Shift the rgba values to their proper place
+			rgb[yPos] = 	(r <<  0) +
+							(g <<  8) +
+							(b << 16) +
+							(255 << 24);
 		}
 	}
 
@@ -62,8 +78,12 @@ void ImageClassifier::convert(){
 
 void ImageClassifier::greenBlobDetection(jbyte* dst) {
 	for ( int i = 0; i < length; i++ ) {
+
+		int r = (rgb[i] >> 16) & 0xff;
 		int g = (rgb[i] >> 8) & 0xff;
-		if ( g > 225 ) {
+		int b = rgb[i] & 0xff;
+
+		if ( g > 250 ) {
 			dst[i] = 1;
 		} else {
 			dst[i] = 0;

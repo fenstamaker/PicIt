@@ -20,6 +20,7 @@ extern "C" {
 void sobel(jbyte* src, jint width, jint height, jbyte* dst);
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst);
 void cc(jbyte* src, jint* dst, int *visited, vector<int> &counter, int pos, int w, int h, int regionCounter);
+void paint(jbyte *src, jint width, jint height, jint *dst);
 
 JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output) {
 
@@ -37,12 +38,31 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 	classifier->convert();
 	classifier->greenBlobDetection(greenDst);
 
-	connectedComponent(greenDst, width, height, dst);
+	//connectedComponent(greenDst, width, height, dst);
+	paint(greenDst, width, height, dst);
 
 	delete [] sobelDst;
 	delete [] greenDst;
 
 	env->ReleaseByteArrayElements(frame, src, JNI_ABORT);
+}
+
+void paint(jbyte *src, jint w, jint h, jint *dst) {
+	// Paints everything a certian color
+	for ( int i = 0; i < w*h; i++ ) {
+		if ( src[i] != 0 ) {
+			//int paintValue = (int) ( ( (float)dst[i] /regionCounter) * 256);
+			int paintValue = src[i];
+
+			dst[i] = 	(255 <<  0) +
+						(255 <<  8) +
+						(255 << 16) +
+						(255 << 24);
+
+		} else {
+			dst[i] = 0;
+		}
+	}
 }
 
 /*
@@ -164,28 +184,6 @@ void connectedComponent(jbyte* src, jint width, jint height, jint* dst) {
 	for ( int i = 0; i < counter.size(); i++ ) {
 		if ( counter[i] > counter[max] ) {
 			max = i;
-		}
-	}
-
-	// Paints everything a certian color
-	for ( int i = 0; i < w*h; i++ ) {
-		if ( dst[i] != 0 ) {
-			if ( dst[i] == max ) {
-				int paintValue = (int) ( ( (float)dst[i] /regionCounter) * 256);
-
-				dst[i] = 	(255 <<  0) +
-							(0 <<  8) +
-							(0 << 16) +
-							(255 << 24);
-			} else {
-				int paintValue = (int) ( ( (float)dst[i] /regionCounter) * 256);
-
-				dst[i] = 	(paintValue <<  0) +
-							(paintValue <<  8) +
-							(paintValue << 16) +
-							(255 << 24);
-			}
-
 		}
 	}
 
