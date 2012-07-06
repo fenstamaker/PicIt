@@ -6,6 +6,6 @@ LOCAL_MODULE    := PicItNativeSobel
 LOCAL_CPPFLAGS += -fexceptions -O3
 LOCAL_LDLIBS := -llog
 ### Add all source file names to be included in lib separated by a whitespace
-LOCAL_SRC_FILES := PicItNativeSobel.cpp ImageClassifier.h ImageClassifier.cpp SobelEdgeDetection.h SobelEdgeDetection.cpp
+LOCAL_SRC_FILES := PicItNativeSobel.cpp ImageClassifier.h ImageClassifier.cpp SobelEdgeDetection.h SobelEdgeDetection.cpp ConnectedComponent.h ConnectedComponent.cpp
 
 include $(BUILD_SHARED_LIBRARY)

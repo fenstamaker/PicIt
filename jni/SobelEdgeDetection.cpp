@@ -62,6 +62,7 @@ void SobelEdgeDetection::performSobel(jbyte *dst) {
 
 			dst[pos] = paintValue;
 
+			/*
 			if ( paintValue != 0 ) {
 
 				// Dilation code
@@ -74,6 +75,7 @@ void SobelEdgeDetection::performSobel(jbyte *dst) {
 				}
 
 			}
+			*/
 
 		} // End Inner For Loop
 
