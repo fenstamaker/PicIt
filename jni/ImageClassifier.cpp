@@ -78,7 +78,7 @@ void ImageClassifier::convert(){
 
 void ImageClassifier::greenBlobDetection(jbyte* dst) {
 	int scanRadius = 4;
-	int dilationRadius = 2;
+	int dilationRadius = 8;
 	int constant = 16;
 
 	for ( int y = 0; y < height; y++ ) {
@@ -110,16 +110,8 @@ void ImageClassifier::greenBlobDetection(jbyte* dst) {
 			int r = (rgb[pos] >> 16) & 0xff;
 			int b = rgb[pos] & 0xff;
 
-			if ( g > 100 && r < 100 && b < 100 ) {
+			if ( g > 128 && r < 100 && b < 128 ) {
 				dst[pos] = 1;
-				for ( int tx = x-dilationRadius; tx < x + dilationRadius; tx++ ) {
-					for ( int ty = y-dilationRadius; ty < y + dilationRadius; ty++ ) {
-						int p = ty*width + tx;
-						if ( p > 0 && p < length ) {
-							dst[p] = 1;
-						}
-					}
-				}
 			} else {
 				dst[pos] = 0;
 			}

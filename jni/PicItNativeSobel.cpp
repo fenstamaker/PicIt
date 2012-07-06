@@ -21,6 +21,8 @@ void sobel(jbyte* src, jint width, jint height, jbyte* dst);
 void connectedComponent(jbyte* src, jint width, jint height, jint* dst);
 void cc(jbyte* src, jint* dst, int *visited, vector<int> &counter, int pos, int w, int h, int regionCounter);
 void paint(jbyte *src, jint width, jint height, jint *dst);
+void dilation(jbyte* src, jint width, jint height, jbyte *dst, int radius);
+void erosion(jbyte* src, jint width, jint height, jbyte *dst, int radius);
 
 JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output) {
 
@@ -30,6 +32,8 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 
 	//jbyte *sobelDst = new jbyte[width*height];
 	jbyte *greenDst = new jbyte[width*height];
+	jbyte *dilationDst = new jbyte[width*height];
+	jbyte *erosionDst = new jbyte[width*height];
 
 	//SobelEdgeDetection *sobel = new SobelEdgeDetection(src, (int)width, (int)height);
 	//sobel->performSobel(sobelDst);
@@ -38,13 +42,65 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 	classifier->convert();
 	classifier->greenBlobDetection(greenDst);
 
+	dilation(greenDst, width, height, dilationDst, 16);
+	erosion(dilationDst, width, height, erosionDst, 3);
+
 	//connectedComponent(greenDst, width, height, dst);
-	paint(greenDst, width, height, dst);
+	paint(erosionDst, width, height, dst);
 
 	//delete [] sobelDst;
+	delete classifier;
+	delete [] dilationDst;
+	delete [] erosionDst;
 	delete [] greenDst;
 
 	env->ReleaseByteArrayElements(frame, src, JNI_ABORT);
+}
+
+void erosion(jbyte* src, jint width, jint height, jbyte *dst, int radius) {
+	for ( int y = 0; y < height; y++ ) {
+		for ( int x = 0; x < width; x++ ) {
+			int pos = y*width+x;
+			if ( src[pos] == 1 ) {
+
+				bool surround = true;
+				for ( int tx = x-radius; tx < x + radius; tx++ ) {
+					for ( int ty = y-radius; ty < y + radius; ty++ ) {
+						int p = ty*width + tx;
+						if ( p > 0 && p < width*height && src[p] != 1 ) {
+							surround = false;
+						}
+					}
+				}
+
+				if (surround) {
+					dst[pos] = 1;
+				} else {
+					dst[pos] = 0;
+				}
+
+			} // End If
+		} // End For
+	} // End For
+}
+
+void dilation(jbyte* src, jint width, jint height, jbyte *dst, int radius) {
+	for ( int y = 0; y < height; y++ ) {
+		for ( int x = 0; x < width; x++ ) {
+			int pos = y*width+x;
+			if ( src[pos] == 1 ) {
+				dst[pos] = 1;
+				for ( int tx = x-radius; tx < x + radius; tx++ ) {
+					for ( int ty = y-radius; ty < y + radius; ty++ ) {
+						int p = ty*width + tx;
+						if ( p > 0 && p < width*height ) {
+							dst[p] = 1;
+						}
+					}
+				}
+			}// End If
+		} // End For
+	} // End For
 }
 
 void paint(jbyte *src, jint w, jint h, jint *dst) {
