@@ -127,59 +127,10 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
      *
      * @param width the width
      * @param height the height
+     * @param sizes the list of support preview/picture sizes
      * @return the optimal size
      */
-    private Size getOptimalSize(int width, int height) {
-    	
-    	Camera.Parameters params = camera.getParameters();
-    	List<Size> sizes = params.getSupportedPreviewSizes();
-    	
-    	int targetHeight = height;
-    	int targetWidth = width;
-    	final double ASPECT_TOLERANCE = 0.1;
-        double targetRatio = (double) width / height;
-    	Size optimalSize = null;
-        double minDiff = Double.MAX_VALUE;
-        
-    	// Try to find an size match aspect ratio and size
-        for (Size size : sizes) {
-        	Log.d(TAG, "Width: " + size.width + " Height: " + size.height);
-            double ratio = (double) size.width / size.height;
-            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
-            if (Math.abs(size.width - targetWidth) < minDiff) {
-                optimalSize = size;
-                minDiff = Math.abs(size.width - targetWidth);
-            }
-        }
-    	
-        if (optimalSize == null) {
-            minDiff = Double.MAX_VALUE;
-            for (Size size : sizes) {
-                if (Math.abs(size.width - targetWidth) < minDiff) {
-                    optimalSize = size;
-                    minDiff = Math.abs(size.width - targetWidth);
-                }
-            }
-        }
-
-    	Log.d(TAG, "Optimal Width: " + optimalSize.width + " Optimal Height: " + optimalSize.height);
-    	return optimalSize;    	
-    }
-    
-    /**
-     * Gets the optimal picture size.
-     * 
-     * Gets the optimal picture size. Same as {@link getOptimalPreviewSize(int, int)} 
-     * but for the photo size instead of preview size.
-     *
-     * @param width the width
-     * @param height the height
-     * @return the optimal picture size
-     */
-    private Size getOptimalPictureSize(int width, int height) {
-    	
-    	Camera.Parameters params = camera.getParameters();
-    	List<Size> sizes = params.getSupportedPictureSizes();
+    private Size getOptimalSize(int width, int height, List<Size> sizes) {
     	
     	int targetHeight = height;
     	int targetWidth = width;
@@ -220,20 +171,23 @@ public class PicItCameraActivity extends Activity implements SurfaceHolder.Callb
 			Log.e(TAG, "IOException: setPreviewDisplay()", e);
 		}
 		
+		// Sets preview and picture size.
+		Camera.Parameters params = camera.getParameters();
+
 		Size optimalSize = null;
+		List<Size> previewSizes = params.getSupportedPreviewSizes();
+    	List<Size> pictureSizes = params.getSupportedPictureSizes();
 		
 		// Limits the preivew size to 800x400 for speed reasons
 		// If screen is smaller, then set it to screen size.
 		if (height > 480) {
-			optimalSize = getOptimalSize(800, 480);
+			optimalSize = getOptimalSize(800, 480, previewSizes);
 		} else {
-			optimalSize = getOptimalSize(width, height);
+			optimalSize = getOptimalSize(width, height, previewSizes);
 		}
 		
-		Size pictureSize = getOptimalPictureSize(800, 480);
+		Size pictureSize = getOptimalSize(800, 480, pictureSizes);
 		
-		// Sets preview and picture size.
-		Camera.Parameters params = camera.getParameters();
 		params.setPreviewSize(optimalSize.width, optimalSize.height);
 		params.setPictureSize(pictureSize.width, pictureSize.height);
 		params.setPictureFormat(ImageFormat.JPEG);
