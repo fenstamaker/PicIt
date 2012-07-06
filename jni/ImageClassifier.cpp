@@ -77,16 +77,52 @@ void ImageClassifier::convert(){
 }
 
 void ImageClassifier::greenBlobDetection(jbyte* dst) {
-	for ( int i = 0; i < length; i++ ) {
+	int scanRadius = 4;
+	int dilationRadius = 2;
+	int constant = 16;
 
-		int r = (rgb[i] >> 16) & 0xff;
-		int g = (rgb[i] >> 8) & 0xff;
-		int b = rgb[i] & 0xff;
+	for ( int y = 0; y < height; y++ ) {
+		for ( int x = 0; x < width; x++ ) {
+			int pos = y*width+x;
 
-		if ( g > 250 ) {
-			dst[i] = 1;
-		} else {
-			dst[i] = 0;
+			/*int sum = 0;
+			int mean = 0;
+			int counter = 0;
+
+			for ( int ty = y-scanRadius; ty < y + scanRadius; ty++ ) {
+				int Y = ty*width;
+				for ( int tx = x-scanRadius; tx < x + scanRadius; tx++ ) {
+					int p = Y + tx;
+					if ( p > 0 && p < length ) {
+						sum += (rgb[p] >> 8) & 0xff;
+						counter++;
+					}
+				}
+			}
+
+			if ( counter == 0 ) {
+				mean = 0;
+			} else {
+				mean = sum / counter;
+			}
+			 */
+			int g = (rgb[pos] >> 8) & 0xff;
+			int r = (rgb[pos] >> 16) & 0xff;
+			int b = rgb[pos] & 0xff;
+
+			if ( g > 100 && r < 100 && b < 100 ) {
+				dst[pos] = 1;
+				for ( int tx = x-dilationRadius; tx < x + dilationRadius; tx++ ) {
+					for ( int ty = y-dilationRadius; ty < y + dilationRadius; ty++ ) {
+						int p = ty*width + tx;
+						if ( p > 0 && p < length ) {
+							dst[p] = 1;
+						}
+					}
+				}
+			} else {
+				dst[pos] = 0;
+			}
 		}
 	}
 }

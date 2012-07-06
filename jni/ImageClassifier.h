@@ -3,6 +3,7 @@
 
 #include <jni.h>
 #include <vector>
+#include <limits.h>
 
 class ImageClassifier {
 public:

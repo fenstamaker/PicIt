@@ -28,11 +28,11 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 	jbyte *src = env->GetByteArrayElements(frame, &copy);
 	jint *dst = (jint*) env->GetDirectBufferAddress(output);
 
-	jbyte *sobelDst = new jbyte[width*height];
+	//jbyte *sobelDst = new jbyte[width*height];
 	jbyte *greenDst = new jbyte[width*height];
 
-	SobelEdgeDetection *sobel = new SobelEdgeDetection(src, (int)width, (int)height);
-	sobel->performSobel(sobelDst);
+	//SobelEdgeDetection *sobel = new SobelEdgeDetection(src, (int)width, (int)height);
+	//sobel->performSobel(sobelDst);
 
 	ImageClassifier *classifier = new ImageClassifier(src, width, height);
 	classifier->convert();
@@ -41,7 +41,7 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 	//connectedComponent(greenDst, width, height, dst);
 	paint(greenDst, width, height, dst);
 
-	delete [] sobelDst;
+	//delete [] sobelDst;
 	delete [] greenDst;
 
 	env->ReleaseByteArrayElements(frame, src, JNI_ABORT);
