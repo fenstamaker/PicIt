@@ -20,6 +20,8 @@ private:
 	int height;
 	int length;
 	int *rgb;
+
+
 };
 
 #endif /* IMAGECLASSIFIER_H_ */
