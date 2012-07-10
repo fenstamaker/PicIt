@@ -1,5 +1,5 @@
 #include "ImageClassifier.h"
-
+#include <android/log.h>
 
 
 ImageClassifier::ImageClassifier(jbyte *s, int w, int h) {
@@ -76,7 +76,7 @@ void ImageClassifier::convert(){
 
 }
 
-void ImageClassifier::greenBlobDetection(jbyte* dst) {
+void ImageClassifier::greenBlobDetection(jbyte* dst, JNIEnv *env, jobject tree, jmethodID mid) {
 	int scanRadius = 4;
 	int dilationRadius = 8;
 	int constant = 16;
@@ -110,11 +110,17 @@ void ImageClassifier::greenBlobDetection(jbyte* dst) {
 			int r = (rgb[pos] >> 16) & 0xff;
 			int b = rgb[pos] & 0xff;
 
+			/*
 			if ( g > 128 && r < 100 && b < 128 ) {
 				dst[pos] = 1;
 			} else {
 				dst[pos] = 0;
 			}
+			*/
+			if ( env->CallIntMethod(tree, mid, r, g, b) == 1 )
+				dst[pos] = 1;
+			else
+				dst[pos] = 0;
 		}
 	}
 }

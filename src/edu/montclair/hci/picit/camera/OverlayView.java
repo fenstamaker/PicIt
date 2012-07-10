@@ -5,6 +5,7 @@ import java.nio.IntBuffer;
 import java.util.Arrays;
 
 import edu.montclair.hci.picit.R;
+import edu.montclair.hci.picit.ml.DecisionTree;
 
 import android.content.Context;
 import android.graphics.*;
@@ -32,6 +33,7 @@ public class OverlayView extends SurfaceView {
 	private long drawTime;
 	
 	private NativeLib nativeLib;
+	public DecisionTree tree;
 	
 	private IntBuffer nativeFrameSobel;
 
@@ -41,6 +43,7 @@ public class OverlayView extends SurfaceView {
 	public void init() {
 		overlayHolder = getHolder();
 		nativeLib = new NativeLib();
+		tree = new DecisionTree( getResources().openRawResource(R.raw.leaf_tree) );
 	}
 
 	public OverlayView(Context context) {
@@ -110,7 +113,7 @@ public class OverlayView extends SurfaceView {
 			long timeSobel1 = System.currentTimeMillis();
 			
 			// Calls the native Sobel detection
-			nativeLib.nativeSobel(frame, frameSize.width, frameSize.height, nativeFrameSobel);
+			nativeLib.nativeSobel(frame, frameSize.width, frameSize.height, nativeFrameSobel, tree);
 			
 			sobelTime = System.currentTimeMillis() - timeSobel1;
 			

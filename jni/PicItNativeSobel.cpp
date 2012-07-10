@@ -15,7 +15,7 @@
 using namespace std;
 
 extern "C" {
-	JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output);
+	JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output, jobject tree);
 };
 
 void paint(jbyte *src, jint width, jint height, jint *dst);
@@ -23,7 +23,14 @@ void dilation(jbyte* src, jint width, jint height, jbyte *dst, int radius);
 void erosion(jbyte* src, jint width, jint height, jbyte *dst, int radius);
 void combine(jbyte* top, jbyte* bottom, int width, int height, jbyte *dst);
 
-JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output) {
+JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel(JNIEnv *env, jclass, jbyteArray frame, jint width, jint height, jobject output, jobject tree) {
+
+	jclass decisionTree = env->GetObjectClass(tree);
+	jmethodID classifierId = env->GetMethodID(decisionTree, "classify", "(III)I");
+	if ( classifierId == 0 ) {
+		__android_log_print(ANDROID_LOG_ERROR, "Picit Native Call", "Failed to get classifier from DecisionTree");
+		return;
+	}
 
 	jboolean copy;
 	jbyte *src = env->GetByteArrayElements(frame, &copy);
@@ -42,7 +49,7 @@ JNIEXPORT void JNICALL Java_edu_montclair_hci_picit_camera_NativeLib_nativeSobel
 
 	ImageClassifier *classifier = new ImageClassifier(src, width, height);
 	classifier->convert();
-	classifier->greenBlobDetection(greenDst);
+	classifier->greenBlobDetection(greenDst, env, tree, classifierId);
 
 	dilation(greenDst, width, height, dilationDst, 16);
 	erosion(dilationDst, width, height, erosionDst, 3);

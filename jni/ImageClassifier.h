@@ -11,7 +11,7 @@ public:
 	void convert();
 	void YUV444toRGB8888(int y, int u, int v, int &r, int &g, int &b);
 
-	void greenBlobDetection(jbyte* dst);
+	void greenBlobDetection(jbyte* dst, JNIEnv *env, jobject tree, jmethodID mid);
 
 	virtual ~ImageClassifier();
 private:

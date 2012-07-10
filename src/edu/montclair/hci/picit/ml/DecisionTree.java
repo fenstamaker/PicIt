@@ -11,13 +11,13 @@ public class DecisionTree {
 	private ArrayList<String> attributes;
 	private DecisionNode root;
 	
-	public DecisionTree(String filename)
+	public DecisionTree(InputStream filename)
 	{
 		// open file
 		BufferedReader file;
 		
 		try {
-			file = new BufferedReader(new FileReader(filename));
+			file = new BufferedReader(new InputStreamReader(filename));
 			
 			String header = file.readLine();
 			
@@ -65,6 +65,7 @@ public class DecisionTree {
 			String text = file.readLine();
 			while ( text != null )
 			{
+				if ( text.equals("}") ) break;
 				String nodeType = text.split("[.]")[6].split("@")[0];
 				
 				if ( nodeType.equals("ScoreTestNode") ) {
@@ -132,8 +133,11 @@ public class DecisionTree {
 	}
 	
 	
-	public String classify(int r, int g, int b)
+	public int classify(int r, int g, int b)
 	{
-		return root.expand(100, 100, 100);
-	}
+		String result = root.expand(r, g, b);
+		if ( result.equals("leaf") ) 
+			return 1;
+		return 0;
+ 	}
 }
