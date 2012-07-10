@@ -1,6 +1,7 @@
 package edu.montclair.hci.picit.location;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 
 import org.apache.http.client.ClientProtocolException;
@@ -32,16 +33,23 @@ private static final String TAG = "LocationDTO";
     		String url = obj.getString("ImagePath");
     		int lat1 = obj.getInt("Lat");
     		int lon1 = obj.getInt("Lon");
-    		images.add(new Image(lat1, lon1, url));
+    		String tag = obj.getString("Tag");
+    		try {
+				images.add(new Image(lat1, lon1, url, tag));
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
     	}
 		
 		return images;
 	}
 	
 	public String getAllString(int lat, int lon) {
-		request = new HttpRequest("http://hci.montclair.edu/android/get_locations.php");
-		request.addValuePair("lat", Integer.toString(lat));
-		request.addValuePair("lon", Integer.toString(lon));
+		request = new HttpRequest("http://hci.montclair.edu/android/get_images.php");
+		//request.addValuePair("lat", Integer.toString(lat));
+		//request.addValuePair("lon", Integer.toString(lon));
 		String result = "";
 		
 		try {

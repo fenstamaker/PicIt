@@ -1,10 +1,16 @@
 package edu.montclair.hci.picit.map;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONException;
 
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -110,7 +116,7 @@ public class PicItMapActivity extends MapActivity {
 		protected void onPostExecute(ArrayList<Location> locations) {
 			for(Location location : locations) {
 			    GeoPoint point = new GeoPoint(location.latitude,location.longitude);
-			    OverlayItem overlayitem = new OverlayItem(point, location.title, location.description);
+			    OverlayItem overlayitem = new OverlayItem(point, location.title, location.description + "\nTag: " + location.tag);
 			    pointOverlay.addOverlay(overlayitem);
 		    }
 	 	        
@@ -137,7 +143,8 @@ public class PicItMapActivity extends MapActivity {
 			if ( !images.isEmpty() ) {
 				for(Image image : images) {
 				    GeoPoint point = new GeoPoint(image.latitude,image.longitude);
-				    OverlayItem overlayitem = new OverlayItem(point, "Image", "Image");
+				    OverlayItem overlayitem = new OverlayItem(point, image.tag, image.photo.toString());
+				    //overlayitem.setMarker(image.photo);
 				    imageOverlay.addOverlay(overlayitem);
 			    }
 		 	        

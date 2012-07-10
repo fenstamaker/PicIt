@@ -34,7 +34,8 @@ public class LocationDTO {
     		String desc = obj.getString("Description");
     		int lat = obj.getInt("Lat");
     		int lon = obj.getInt("Lon");
-    		locations.add(new Location(title, desc, lat, lon));
+    		String tag = obj.getString("Tag");
+    		locations.add(new Location(title, desc, lat, lon, tag));
     	}
 		
 		return locations;
@@ -90,7 +91,7 @@ public class LocationDTO {
 		return result;
 	}
 	
-	public boolean add(String title, String desc, double lat, double lon) {
+	public boolean add(String title, String desc, double lat, double lon, String tag) {
 		request = new HttpRequest("http://hci.montclair.edu/android/add_locations.php");
 		
 		request.addValuePair("submit", "Submit");
@@ -98,6 +99,7 @@ public class LocationDTO {
 		request.addValuePair("description", desc);
 		request.addValuePair("lat", Double.toString(lat));
 		request.addValuePair("long", Double.toString(lon));
+		request.addValuePair("tag", tag);
 		
 		String result = "";
 		try {
