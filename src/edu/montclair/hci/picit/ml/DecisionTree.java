@@ -128,18 +128,12 @@ public class DecisionTree {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		
-		
-		String result = root.expand(100, 100, 100);
-		System.out.println(result);
 				
 	}
 	
 	
-	public int classify(int[] values)
+	public String classify(int r, int g, int b)
 	{
-		
-		
-		return 0;
+		return root.expand(100, 100, 100);
 	}
 }
