@@ -9,6 +9,11 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 
+/**
+ * Holds AN image on client from server
+ * @author gf102
+ *
+ */
 public class Image {
 	public int latitude;
 	public int longitude;

@@ -110,17 +110,18 @@ void ImageClassifier::greenBlobDetection(jbyte* dst, JNIEnv *env, jobject tree, 
 			int r = (rgb[pos] >> 16) & 0xff;
 			int b = rgb[pos] & 0xff;
 
-			/*
+
 			if ( g > 128 && r < 100 && b < 128 ) {
 				dst[pos] = 1;
 			} else {
 				dst[pos] = 0;
 			}
-			*/
+			/*
 			if ( env->CallIntMethod(tree, mid, r, g, b) == 1 )
 				dst[pos] = 1;
 			else
 				dst[pos] = 0;
+				*/
 		}
 	}
 }

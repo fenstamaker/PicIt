@@ -11,6 +11,11 @@ import org.json.JSONObject;
 
 import android.util.Log;
 
+/**
+ * Grabs ALL images from server
+ * @author gf102
+ *
+ */
 public class ImageDTO {
 	
 private static final String TAG = "LocationDTO";
@@ -21,6 +26,13 @@ private static final String TAG = "LocationDTO";
 		
 	}
 	
+	/**
+	 * Processes JSON output from PHP server and loads all images
+	 * @param lat
+	 * @param lon
+	 * @return
+	 * @throws JSONException
+	 */
 	public ArrayList<Image> getAllImages(int lat, int lon) throws JSONException {
 		ArrayList<Image> images = new ArrayList<Image>();
 		
@@ -46,6 +58,12 @@ private static final String TAG = "LocationDTO";
 		return images;
 	}
 	
+	/**
+	 * Grabs content of the JSON output from the PHP server
+	 * @param lat
+	 * @param lon
+	 * @return
+	 */
 	public String getAllString(int lat, int lon) {
 		request = new HttpRequest("http://hci.montclair.edu/android/get_images.php");
 		//request.addValuePair("lat", Integer.toString(lat));
